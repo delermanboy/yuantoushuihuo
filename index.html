@@ -515,6 +515,12 @@ body::after {
   color: white;
 }
 
+.option-text { flex: 1; font-size: 14px; line-height: 1.6; }
+.option-status-tag { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; white-space: nowrap; flex-shrink: 0; align-self: center; }
+.option-status-tag.correct-tag { background: rgba(16,185,129,0.15); color: var(--success); }
+.option-status-tag.wrong-tag { background: rgba(239,68,68,0.15); color: var(--danger); }
+.option-status-tag.missed-tag { background: rgba(245,158,11,0.12); color: #d97706; }
+
 .multi-hint {
   font-size: 12px;
   color: var(--warning);
@@ -635,7 +641,7 @@ body::after {
   border-radius: var(--radius);
   margin-bottom: 16px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
   font-weight: 600;
   font-size: 15px;
@@ -665,6 +671,16 @@ body::after {
 
 .result-banner.correct .result-icon { background: var(--success); color: white; }
 .result-banner.wrong .result-icon { background: var(--danger); color: white; }
+
+.result-banner-text { flex: 1; min-width: 0; }
+.result-banner-title { font-weight: 700; font-size: 15px; margin-bottom: 4px; }
+.result-banner-detail { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 2px; }
+.answer-tag { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 6px; font-size: 13px; font-weight: 600; }
+.answer-tag.your-answer { background: rgba(99,102,241,0.12); color: var(--primary); }
+.answer-tag.correct-answer { background: rgba(16,185,129,0.12); color: var(--success); }
+.result-banner-wrong-detail { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; }
+.wrong-option-tag { display: inline-block; padding: 3px 10px; border-radius: 6px; font-size: 12px; background: rgba(239,68,68,0.1); color: var(--danger); border: 1px solid rgba(239,68,68,0.2); }
+.missed-option-tag { display: inline-block; padding: 3px 10px; border-radius: 6px; font-size: 12px; background: rgba(245,158,11,0.1); color: #d97706; border: 1px solid rgba(245,158,11,0.2); }
 
 .analysis-panel {
   margin-top: 16px;
@@ -892,6 +908,44 @@ body::after {
   gap: 8px;
   font-size: 12px;
   color: var(--text-muted);
+}
+
+.wrong-history {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+
+.wrong-history-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.wrong-history-item {
+  font-size: 12px;
+  margin-bottom: 2px;
+}
+
+.wrong-history-tag {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.wrong-history-tag.error {
+  background: rgba(239,68,68,0.1);
+  color: var(--danger);
+}
+
+.wrong-history-tag.warn {
+  background: rgba(245,158,11,0.1);
+  color: #d97706;
 }
 
 .toast {
@@ -1369,6 +1423,10 @@ body::after {
         <div class="mode-grid" id="layeredGrid"></div>
       </div>
     </div>
+  </div>
+
+  <div class="page" id="page-wrong">
+    <div id="page-wrong-content"></div>
   </div>
 
   <div class="page" id="page-settings">
@@ -55165,10 +55223,21 @@ function renderQuiz() {
     if (!text) return;
 
     let cls = 'option-item';
+    let optionLabel = '';
     if (isAnswered) {
       cls += ' disabled';
-      if (letter === result.correctAnswer || result.correctAnswers.includes(letter)) cls += ' correct';
-      if (result.userAnswer.includes(letter) && !(result.correctAnswers.includes(letter))) cls += ' wrong';
+      if (result.correctAnswers.includes(letter)) {
+        cls += ' correct';
+        if (result.userAnswer.includes(letter)) {
+          optionLabel = '<span class="option-status-tag correct-tag">&#x2713; 正确</span>';
+        } else {
+          optionLabel = '<span class="option-status-tag missed-tag">&#x2713; 正确答案（未选）</span>';
+        }
+      }
+      if (result.userAnswer.includes(letter) && !(result.correctAnswers.includes(letter))) {
+        cls += ' wrong';
+        optionLabel = '<span class="option-status-tag wrong-tag">&#x2717; 你选了此项</span>';
+      }
     } else if (isMulti) {
       if (userAnswer.includes(letter)) cls += ' selected';
     } else {
@@ -55177,7 +55246,8 @@ function renderQuiz() {
 
     optionsHtml += `<div class="${cls}" onclick="${isAnswered ? '' : (isMulti ? `toggleMultiOption('${letter}')` : `selectOption('${letter}')`)}">
       <div class="option-letter">${letter}</div>
-      <div>${text}</div>
+      <div class="option-text">${text}</div>
+      ${optionLabel}
     </div>`;
   });
 
@@ -55188,10 +55258,24 @@ function renderQuiz() {
   let analysisHtml = '';
 
   if (isAnswered) {
+    const userAnswerStr = result.userAnswer.join('');
+    const correctAnswerStr = result.correctAnswers.join('');
+    const wrongAnswers = result.userAnswer.filter(a => !result.correctAnswers.includes(a));
+    const missedAnswers = result.correctAnswers.filter(a => !result.userAnswer.includes(a));
+
     resultBanner = `<div class="result-banner ${isCorrect ? 'correct' : 'wrong'}">
       <div class="result-icon">${isCorrect ? '&#x2713;' : '&#x2717;'}</div>
-      <div>${isCorrect ? '回答正确！' : '回答错误'}</div>
-      <div style="margin-left:auto;font-size:13px;">正确答案：${correctAnswer}</div>
+      <div class="result-banner-text">
+        <div class="result-banner-title">${isCorrect ? '回答正确！' : '回答错误'}</div>
+        <div class="result-banner-detail">
+          <span class="answer-tag your-answer">你的选择：${userAnswerStr || '未作答'}</span>
+          ${!isCorrect ? `<span class="answer-tag correct-answer">正确答案：${correctAnswerStr}</span>` : ''}
+        </div>
+        ${!isCorrect ? `<div class="result-banner-wrong-detail">
+          ${wrongAnswers.length > 0 ? wrongAnswers.map(a => `<span class="wrong-option-tag">${a}. ${q[a] || ''}</span>`).join('') : ''}
+          ${missedAnswers.length > 0 ? `<span class="missed-option-tag">遗漏：${missedAnswers.map(a => `${a}`).join('')}</span>` : ''}
+        </div>` : ''}
+      </div>
     </div>`;
 
     analysisHtml = `<div class="analysis-panel">
@@ -55315,12 +55399,18 @@ function submitAnswer() {
   localStorage.setItem('questionStats', JSON.stringify(questionStats));
 
   if (!isCorrect) {
+    const wrongAnswers = userAnswers.filter(a => !correctAnswers.includes(a));
+    const missedAnswers = correctAnswers.filter(a => !userAnswers.includes(a));
     if (!wrongQuestions.find(w => w.id === q.id)) {
-      wrongQuestions.push({ ...q, wrongTime: Date.now(), wrongCount: 1 });
+      wrongQuestions.push({ ...q, wrongTime: Date.now(), wrongCount: 1, wrongAnswers: [wrongAnswers], missedAnswers: [missedAnswers] });
     } else {
       const wq = wrongQuestions.find(w => w.id === q.id);
       wq.wrongCount = (wq.wrongCount || 1) + 1;
       wq.wrongTime = Date.now();
+      if (!wq.wrongAnswers) wq.wrongAnswers = [];
+      if (!wq.missedAnswers) wq.missedAnswers = [];
+      wq.wrongAnswers.push(wrongAnswers);
+      wq.missedAnswers.push(missedAnswers);
     }
   } else {
     wrongQuestions = wrongQuestions.filter(w => w.id !== q.id);
@@ -55389,7 +55479,7 @@ function reviewWrongInQuiz() {
 }
 
 function renderWrongList() {
-  const container = document.getElementById('page-wrong');
+  const container = document.getElementById('page-wrong-content');
   if (wrongQuestions.length === 0) {
     container.innerHTML = `<div class="card"><div class="empty-state">
       <div class="icon">&#x1F389;</div>
@@ -55406,7 +55496,18 @@ function renderWrongList() {
         <button class="btn btn-primary btn-sm" onclick="startWrongQuiz()">&#x1F504; 开始错题练习</button>
       </div>
       <div class="card-body" style="padding:0;">
-        ${wrongQuestions.map((q, i) => `
+        ${wrongQuestions.map((q, i) => {
+          const lastWrong = q.wrongAnswers && q.wrongAnswers.length > 0 ? q.wrongAnswers[q.wrongAnswers.length - 1] : [];
+          const lastMissed = q.missedAnswers && q.missedAnswers.length > 0 ? q.missedAnswers[q.missedAnswers.length - 1] : [];
+          const wrongHistoryHtml = q.wrongAnswers && q.wrongAnswers.length > 0 ? `
+            <div class="wrong-history">
+              <div class="wrong-history-label">&#x1F4CC; 最近选错记录</div>
+              ${lastWrong.length > 0 ? `<div class="wrong-history-item"><span class="wrong-history-tag error">误选：${lastWrong.map(a => a).join('')}</span></div>` : ''}
+              ${lastMissed.length > 0 ? `<div class="wrong-history-item"><span class="wrong-history-tag warn">遗漏：${lastMissed.map(a => a).join('')}</span></div>` : ''}
+              ${q.wrongAnswers.length > 1 ? `<div class="wrong-history-item" style="color:var(--text-muted);font-size:11px;">共错 ${q.wrongAnswers.length} 次，点击查看详情</div>` : ''}
+            </div>
+          ` : '';
+          return `
           <div class="wrong-item" onclick="reviewWrongQuestion(${i})">
             <div class="wrong-item-header">
               <span class="tag tag-chapter">${q.chapter}</span>
@@ -55417,8 +55518,9 @@ function renderWrongList() {
             <div class="wrong-item-meta">
               <span>正确答案：${q.answer}</span>
             </div>
-          </div>
-        `).join('')}
+            ${wrongHistoryHtml}
+          </div>`;
+        }).join('')}
       </div>
     </div>
   `;
@@ -55643,11 +55745,17 @@ function submitExam() {
 
     questionStats[q.id] = { correct: isCorrect, time: Date.now() };
     if (!isCorrect) {
+      const wrongAnswers = (currentQuiz.answers[idx] || '').split('').filter(a => !q.answer.includes(a));
+      const missedAnswers = q.answer.split('').filter(a => !(currentQuiz.answers[idx] || '').includes(a));
       if (!wrongQuestions.find(w => w.id === q.id)) {
-        wrongQuestions.push({ ...q, wrongTime: Date.now(), wrongCount: 1 });
+        wrongQuestions.push({ ...q, wrongTime: Date.now(), wrongCount: 1, wrongAnswers: [wrongAnswers], missedAnswers: [missedAnswers] });
       } else {
         const wq = wrongQuestions.find(w => w.id === q.id);
         wq.wrongCount = (wq.wrongCount || 1) + 1;
+        if (!wq.wrongAnswers) wq.wrongAnswers = [];
+        if (!wq.missedAnswers) wq.missedAnswers = [];
+        wq.wrongAnswers.push(wrongAnswers);
+        wq.missedAnswers.push(missedAnswers);
       }
     } else {
       wrongQuestions = wrongQuestions.filter(w => w.id !== q.id);
