@@ -53509,10 +53509,6 @@ function submitAnswer() {
 
   updateStats();
   renderQuiz();
-
-  if (settings.autoAnalysis && settings.apiKeys?.[settings.aiModel || 'deepseek']) {
-    requestAIAnalysis(idx);
-  }
 }
 
 function prevQuestion() {
@@ -54169,28 +54165,15 @@ async function requestAIAnalysisForExamWrong(recordIdx, questionIdx) {
     containerEl.innerHTML = `<div class="ai-analysis"><div class="ai-loading"><div class="spinner"></div> AI 正在分析中...</div></div>`;
   }
   
-  const prompt = `你是一位医学教育专家，请对以下系统解剖学题目进行详细解析。
+  const prompt = `解析以下错题：
 
 题目：${q.question}
-选项：
-A. ${q.A || '无'}
-B. ${q.B || '无'}
-C. ${q.C || '无'}
-D. ${q.D || '无'}
-E. ${q.E || '无'}
-正确答案：${q.answer}
-用户答案：${q.userAnswer || '未作答'}
-题型：${q.type}
+选项：A.${q.A||'无'} B.${q.B||'无'} C.${q.C||'无'} D.${q.D||'无'} E.${q.E||'无'}
+正确答案：${q.answer} | 用户答案：${q.userAnswer || '未作答'} | 题型：${q.type}
 
-请从以下几个方面进行解析：
-1. 正确答案及解析：为什么选这个答案
-2. 用户错因分析：分析用户为什么会选错（或未作答）
-3. 相关知识点：涉及的核心解剖学知识
-4. 记忆技巧：帮助记忆的方法
+请简要分析：1)正确答案原因 2)用户错因 3)知识点 4)记忆技巧。控制在250字内。`;
 
-请用简洁清晰的语言回答，适合医学生理解。`;
-
-  const systemMsg = '你是一位专业的系统解剖学教师，擅长用通俗易懂的语言解释复杂的解剖学概念，善于分析学生的错误原因。';
+  const systemMsg = '你是系统解剖学教师，善于分析学生错误，回答简洁。';
   const model = settings.aiModel || 'deepseek';
   const apiKey = settings.apiKeys?.[model];
   
@@ -54201,8 +54184,8 @@ E. ${q.E || '无'}
       body: () => ({
         model: 'deepseek-chat',
         messages: [{ role: 'system', content: systemMsg }, { role: 'user', content: prompt }],
-        temperature: 0.7,
-        max_tokens: 1000
+        temperature: 0.5,
+        max_tokens: 500
       }),
       parse: (data) => data.choices?.[0]?.message?.content
     },
@@ -54212,8 +54195,8 @@ E. ${q.E || '无'}
       body: () => ({
         model: 'gpt-4o-mini',
         messages: [{ role: 'system', content: systemMsg }, { role: 'user', content: prompt }],
-        temperature: 0.7,
-        max_tokens: 1000
+        temperature: 0.5,
+        max_tokens: 500
       }),
       parse: (data) => data.choices?.[0]?.message?.content
     },
@@ -54222,7 +54205,7 @@ E. ${q.E || '无'}
       headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
       body: () => ({
         model: 'claude-3-haiku-20240307',
-        max_tokens: 1000,
+        max_tokens: 500,
         system: systemMsg,
         messages: [{ role: 'user', content: prompt }]
       }),
@@ -54234,8 +54217,8 @@ E. ${q.E || '无'}
       body: () => ({
         model: settings.customModel || 'custom-model',
         messages: [{ role: 'system', content: systemMsg }, { role: 'user', content: prompt }],
-        temperature: 0.7,
-        max_tokens: 1000
+        temperature: 0.5,
+        max_tokens: 500
       }),
       parse: (data) => data.choices?.[0]?.message?.content
     }
@@ -54248,12 +54231,17 @@ E. ${q.E || '无'}
     return;
   }
   
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
+  
   try {
     const resp = await fetch(config.url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...config.headers },
-      body: JSON.stringify(config.body())
+      body: JSON.stringify(config.body()),
+      signal: controller.signal
     });
+    clearTimeout(timeoutId);
     
     if (!resp.ok) {
       const errText = await resp.text();
@@ -54269,7 +54257,9 @@ E. ${q.E || '无'}
       containerEl.innerHTML = `<div class="ai-analysis"><div class="ai-label">&#x1F916; AI 智能解析</div><div style="white-space:pre-wrap;line-height:1.8;">${escapeHtml(aiText)}</div></div>`;
     }
   } catch (err) {
-    if (containerEl) {
+    if (err.name === 'AbortError') {
+      if (containerEl) containerEl.innerHTML = `<div class="ai-analysis" style="border-color:rgba(239,68,68,0.2);background:rgba(239,68,68,0.05);"><div class="ai-label" style="color:var(--danger);background:rgba(239,68,68,0.1);">&#x26A0; 请求超时</div><p>AI 解析响应超过15秒，请检查网络或稍后重试。</p></div>`;
+    } else if (containerEl) {
       containerEl.innerHTML = `<div class="ai-analysis" style="border-color:rgba(239,68,68,0.2);background:rgba(239,68,68,0.05);"><div class="ai-label" style="color:var(--danger);background:rgba(239,68,68,0.1);">&#x26A0; 解析失败</div><p>${escapeHtml(err.message)}</p></div>`;
     }
   }
@@ -54313,46 +54303,16 @@ async function requestExamAIAnalysis() {
     `${i+1}. [${q.chapter}] ${q.question.substring(0, 60)}... 正确答案:${q.answer} 你的答案:${q.userAnswer || '未作答'}`
   ).join('\n');
   
-  const prompt = `你是一位资深医学教育专家和系统解剖学教师。请根据以下学生的考试数据，生成一份详细的个性化学习诊断报告。
+  const prompt = `根据以下考试数据生成学习诊断报告：
 
-## 考试概况
-- 得分：${r.score}/${r.totalScore}（${scorePercent}%）
-- 单选题：${r.singleCorrect}对 / ${r.singleWrong}错 / ${40 - r.singleCorrect - r.singleWrong}未答
-- 多选题：${r.multiCorrect}对 / ${r.multiWrong}错 / ${10 - r.multiCorrect - r.multiWrong}未答
-- 用时：${Math.floor(r.timeTaken / 60)}分${r.timeTaken % 60}秒
+得分：${r.score}/${r.totalScore}（${scorePercent}%）| 单选：${r.singleCorrect}对${r.singleWrong}错 | 多选：${r.multiCorrect}对${r.multiWrong}错 | 用时：${Math.floor(r.timeTaken/60)}分${r.timeTaken%60}秒
 
-## 章节错题分布
-${weakChapters.join('\n') || '无'}
+薄弱章节：${weakChapters.join('、') || '无'}
+难度分布：${diffStats.join('、') || '无'}
 
-## 难度错题分布
-${diffStats.join('\n') || '无'}
+请给出：1)总体评价 2)薄弱点分析 3)学习建议 4)短期/中期计划。控制在500字内。`;
 
-## 部分错题示例
-${wrongQuestionsSummary || '无'}
-
-请从以下几个方面给出详细的诊断报告：
-
-### 1. 总体评价
-对学生的整体表现进行评价，指出优势和不足。
-
-### 2. 薄弱环节分析
-- 哪些章节是薄弱点？为什么？
-- 单选和多选分别存在什么问题？
-- 是知识掌握不牢还是审题问题？
-
-### 3. 个性化学习建议
-- 针对薄弱章节给出具体的复习策略
-- 推荐学习顺序和优先级
-- 给出记忆方法和技巧
-
-### 4. 查漏补缺计划
-- 短期（1-3天）应该重点做什么
-- 中期（1周）如何巩固
-- 长期如何建立知识体系
-
-请用专业但易懂的语言，像一位耐心的老师在和学生对话。`;
-
-  const systemMsg = '你是一位资深的系统解剖学教育专家和教学顾问，擅长根据学生的考试数据生成个性化的学习诊断报告。你的分析既有专业性又通俗易懂，善于发现学生的薄弱环节并给出可执行的建议。';
+  const systemMsg = '你是系统解剖学教学顾问，善于根据考试数据给出 actionable 的学习建议。';
   
   const model = settings.aiModel || 'deepseek';
   const apiKey = settings.apiKeys?.[model];
@@ -54364,8 +54324,8 @@ ${wrongQuestionsSummary || '无'}
       body: () => ({
         model: 'deepseek-chat',
         messages: [{ role: 'system', content: systemMsg }, { role: 'user', content: prompt }],
-        temperature: 0.7,
-        max_tokens: 2000
+        temperature: 0.5,
+        max_tokens: 800
       }),
       parse: (data) => data.choices?.[0]?.message?.content
     },
@@ -54375,8 +54335,8 @@ ${wrongQuestionsSummary || '无'}
       body: () => ({
         model: 'gpt-4o-mini',
         messages: [{ role: 'system', content: systemMsg }, { role: 'user', content: prompt }],
-        temperature: 0.7,
-        max_tokens: 2000
+        temperature: 0.5,
+        max_tokens: 800
       }),
       parse: (data) => data.choices?.[0]?.message?.content
     },
@@ -54385,7 +54345,7 @@ ${wrongQuestionsSummary || '无'}
       headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
       body: () => ({
         model: 'claude-3-haiku-20240307',
-        max_tokens: 2000,
+        max_tokens: 800,
         system: systemMsg,
         messages: [{ role: 'user', content: prompt }]
       }),
@@ -54397,8 +54357,8 @@ ${wrongQuestionsSummary || '无'}
       body: () => ({
         model: settings.customModel || 'custom-model',
         messages: [{ role: 'system', content: systemMsg }, { role: 'user', content: prompt }],
-        temperature: 0.7,
-        max_tokens: 2000
+        temperature: 0.5,
+        max_tokens: 800
       }),
       parse: (data) => data.choices?.[0]?.message?.content
     }
@@ -54411,12 +54371,17 @@ ${wrongQuestionsSummary || '无'}
     return;
   }
   
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 20000);
+  
   try {
     const resp = await fetch(config.url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...config.headers },
-      body: JSON.stringify(config.body())
+      body: JSON.stringify(config.body()),
+      signal: controller.signal
     });
+    clearTimeout(timeoutId);
     
     if (!resp.ok) {
       const errText = await resp.text();
@@ -54432,7 +54397,9 @@ ${wrongQuestionsSummary || '无'}
       containerEl.innerHTML = `<div class="ai-analysis"><div class="ai-label">&#x1F916; AI 智能考情诊断</div><div style="white-space:pre-wrap;line-height:1.8;">${escapeHtml(aiText)}</div></div>`;
     }
   } catch (err) {
-    if (containerEl) {
+    if (err.name === 'AbortError') {
+      if (containerEl) containerEl.innerHTML = `<div class="ai-analysis" style="border-color:rgba(239,68,68,0.2);background:rgba(239,68,68,0.05);"><div class="ai-label" style="color:var(--danger);background:rgba(239,68,68,0.1);">&#x26A0; 请求超时</div><p>AI 考情解析响应超过20秒，请检查网络或稍后重试。</p></div>`;
+    } else if (containerEl) {
       containerEl.innerHTML = `<div class="ai-analysis" style="border-color:rgba(239,68,68,0.2);background:rgba(239,68,68,0.05);"><div class="ai-label" style="color:var(--danger);background:rgba(239,68,68,0.1);">&#x26A0; 解析失败</div><p>${escapeHtml(err.message)}</p></div>`;
     }
   }
@@ -54500,7 +54467,7 @@ async function requestAIAnalysis(qIdx) {
   const model = settings.aiModel || 'deepseek';
   const apiKey = settings.apiKeys?.[model];
   if (!apiKey) {
-    showToast('请先在设置中配置 API Key');
+    showToast('请先在修炼设置中配置 API Key');
     return;
   }
 
@@ -54514,62 +54481,45 @@ async function requestAIAnalysis(qIdx) {
     containerEl.innerHTML = `<div class="ai-analysis"><div class="ai-loading"><div class="spinner"></div> AI 正在分析中...</div></div>`;
   }
 
-  const prompt = `你是一位医学教育专家，请对以下系统解剖学题目进行详细解析。
+  const prompt = `解析以下系统解剖学题：
 
 题目：${q.question}
-选项：
-A. ${q.A || '无'}
-B. ${q.B || '无'}
-C. ${q.C || '无'}
-D. ${q.D || '无'}
-E. ${q.E || '无'}
-正确答案：${q.answer}
-题型：${q.type}
-难度：${q.difficulty}
+选项：A.${q.A||'无'} B.${q.B||'无'} C.${q.C||'无'} D.${q.D||'无'} E.${q.E||'无'}
+正确答案：${q.answer} | 题型：${q.type}
 
-请从以下几个方面进行解析：
-1. 正确答案及解析：为什么选这个答案
-2. 相关知识点：涉及的核心解剖学知识
-3. 易错点分析：常见的错误原因和混淆点
-4. 记忆技巧：帮助记忆的方法
+请简要说明：1)为什么选这个答案 2)涉及的知识点 3)易错点 4)记忆技巧。控制在300字内。`;
 
-请用简洁清晰的语言回答，适合医学生理解。`;
+  const systemMsg = '你是系统解剖学教师，回答简洁明了，适合医学生快速理解。';
 
-  const systemMsg = '你是一位专业的系统解剖学教师，擅长用通俗易懂的语言解释复杂的解剖学概念。';
-
-  // Model configurations
   const modelConfigs = {
     deepseek: {
       url: 'https://api.deepseek.com/chat/completions',
-      model: 'deepseek-chat',
       headers: { 'Authorization': `Bearer ${apiKey}` },
-      body: (prompt) => ({
+      body: () => ({
         model: 'deepseek-chat',
         messages: [{ role: 'system', content: systemMsg }, { role: 'user', content: prompt }],
-        temperature: 0.7,
-        max_tokens: 1000
+        temperature: 0.5,
+        max_tokens: 600
       }),
       parse: (data) => data.choices?.[0]?.message?.content
     },
     openai: {
       url: 'https://api.openai.com/v1/chat/completions',
-      model: 'gpt-4o-mini',
       headers: { 'Authorization': `Bearer ${apiKey}` },
-      body: (prompt) => ({
+      body: () => ({
         model: 'gpt-4o-mini',
         messages: [{ role: 'system', content: systemMsg }, { role: 'user', content: prompt }],
-        temperature: 0.7,
-        max_tokens: 1000
+        temperature: 0.5,
+        max_tokens: 600
       }),
       parse: (data) => data.choices?.[0]?.message?.content
     },
     claude: {
       url: 'https://api.anthropic.com/v1/messages',
-      model: 'claude-3-haiku-20240307',
       headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-      body: (prompt) => ({
+      body: () => ({
         model: 'claude-3-haiku-20240307',
-        max_tokens: 1000,
+        max_tokens: 600,
         system: systemMsg,
         messages: [{ role: 'user', content: prompt }]
       }),
@@ -54577,13 +54527,12 @@ E. ${q.E || '无'}
     },
     custom: {
       url: settings.customUrl || '',
-      model: settings.customModel || 'custom-model',
       headers: { 'Authorization': `Bearer ${apiKey}` },
-      body: (prompt) => ({
+      body: () => ({
         model: settings.customModel || 'custom-model',
         messages: [{ role: 'system', content: systemMsg }, { role: 'user', content: prompt }],
-        temperature: 0.7,
-        max_tokens: 1000
+        temperature: 0.5,
+        max_tokens: 600
       }),
       parse: (data) => data.choices?.[0]?.message?.content
     }
@@ -54596,23 +54545,22 @@ E. ${q.E || '无'}
     return;
   }
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
+
   try {
     const resp = await fetch(config.url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...config.headers
-      },
-      body: JSON.stringify(config.body(prompt))
+      headers: { 'Content-Type': 'application/json', ...config.headers },
+      body: JSON.stringify(config.body()),
+      signal: controller.signal
     });
+    clearTimeout(timeoutId);
 
     if (!resp.ok) {
       const errText = await resp.text();
       let errMsg = `API 请求失败 (${resp.status})`;
-      try {
-        const errData = JSON.parse(errText);
-        errMsg = errData.error?.message || errData.error?.code || errMsg;
-      } catch (e) {}
+      try { const errData = JSON.parse(errText); errMsg = errData.error?.message || errData.error?.code || errMsg; } catch (e) {}
       throw new Error(errMsg);
     }
 
@@ -54620,24 +54568,17 @@ E. ${q.E || '无'}
     const aiText = config.parse(data) || 'AI 未返回解析内容';
 
     if (containerEl) {
-      containerEl.innerHTML = `<div class="ai-analysis">
-        <div class="ai-label">&#x1F916; AI 智能解析</div>
-        <div style="white-space:pre-wrap;line-height:1.8;">${escapeHtml(aiText)}</div>
-      </div>`;
+      containerEl.innerHTML = `<div class="ai-analysis"><div class="ai-label">&#x1F916; AI 智能解析</div><div style="white-space:pre-wrap;line-height:1.8;">${escapeHtml(aiText)}</div></div>`;
     }
   } catch (err) {
-    if (containerEl) {
-      containerEl.innerHTML = `<div class="ai-analysis" style="border-color:rgba(239,68,68,0.2);background:rgba(239,68,68,0.05);">
-        <div class="ai-label" style="color:var(--danger);background:rgba(239,68,68,0.1);">&#x26A0; 解析失败</div>
-        <p>${escapeHtml(err.message)}</p>
-      </div>`;
+    if (err.name === 'AbortError') {
+      if (containerEl) containerEl.innerHTML = `<div class="ai-analysis" style="border-color:rgba(239,68,68,0.2);background:rgba(239,68,68,0.05);"><div class="ai-label" style="color:var(--danger);background:rgba(239,68,68,0.1);">&#x26A0; 请求超时</div><p>AI 解析响应超过15秒，请检查网络或稍后重试。</p></div>`;
+    } else if (containerEl) {
+      containerEl.innerHTML = `<div class="ai-analysis" style="border-color:rgba(239,68,68,0.2);background:rgba(239,68,68,0.05);"><div class="ai-label" style="color:var(--danger);background:rgba(239,68,68,0.1);">&#x26A0; 解析失败</div><p>${escapeHtml(err.message)}</p></div>`;
     }
   }
 
-  if (btnEl) {
-    btnEl.disabled = false;
-    btnEl.innerHTML = '&#x1F916; AI解析';
-  }
+  if (btnEl) { btnEl.disabled = false; btnEl.innerHTML = '&#x1F916; AI解析'; }
 }
 
 function escapeHtml(text) {
