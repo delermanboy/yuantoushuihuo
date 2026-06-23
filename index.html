@@ -2001,6 +2001,7 @@ select.input option { background: #1a1a2e; color: #f1f5f9; }
   <button class="nav-item" data-page="layered" onclick="navigateTo('layered')">境界突破</button>
   <button class="nav-item" data-page="challenge" onclick="navigateTo('challenge')">生死试炼</button>
   <button class="nav-item" data-page="knowledge" onclick="navigateTo('knowledge')">知识点</button>
+  <button class="nav-item" data-page="favorites" onclick="navigateTo('favorites')">&#x2B50;收藏</button>
   <button class="nav-item" data-page="settings" onclick="navigateTo('settings')">修炼设置</button>
 </nav>
 
@@ -2172,6 +2173,10 @@ select.input option { background: #1a1a2e; color: #f1f5f9; }
 
   <div class="page" id="page-challenge">
     <div id="challenge-container"></div>
+  </div>
+
+  <div class="page" id="page-favorites">
+    <div id="favorites-container"></div>
   </div>
 
   <div class="page" id="page-knowledge">
@@ -53691,6 +53696,9 @@ function navigateTo(page) {
   if (page === 'knowledge') {
     renderKnowledgeSystem();
   }
+  if (page === 'favorites') {
+    renderFavorites();
+  }
 }
 
 function updateStats() {
@@ -53900,6 +53908,7 @@ function renderQuiz() {
         <button class="btn btn-outline" onclick="nextQuestion()" ${idx === total - 1 ? 'disabled' : ''}>下一题 &#x2192;</button>
       </div>
       <div class="action-right">
+        <button class="btn btn-outline" onclick="toggleFavorite(${idx})" id="favBtn_${idx}" title="收藏此题" style="padding:6px 10px;font-size:16px;">${isFavorited(currentQuiz.questions[idx].id) ? '&#x2B50;' : '&#x2606;'}</button>
         ${!isAnswered ? `<button class="btn btn-primary" onclick="submitAnswer()" ${(!isMulti && !userAnswer) || (isMulti && !userAnswer) ? 'disabled' : ''}>&#x2713; 提交答案</button>` : ''}
         ${isAnswered ? `<button class="btn btn-outline" onclick="requestAIAnalysis(${idx})" id="aiBtn_${idx}">&#x1F916; AI解析</button>` : ''}
         ${idx === total - 1 && answeredCount === total ? `<button class="btn btn-success" onclick="finishQuiz()">&#x1F3C6; 完成练习</button>` : ''}
@@ -54474,6 +54483,134 @@ function submitExam() {
   // 不及格弹出梗图
   if (scorePercent < 60) {
     setTimeout(() => showFailMeme(), 800);
+  }
+}
+
+// ==================== Favorites System ====================
+function getFavorites() {
+  try { return JSON.parse(localStorage.getItem('favoriteQuestions') || '[]'); } catch(e) { return []; }
+}
+
+function saveFavorites(favs) {
+  try { localStorage.setItem('favoriteQuestions', JSON.stringify(favs)); } catch(e) {}
+}
+
+function isFavorited(questionId) {
+  if (!questionId) return false;
+  return getFavorites().some(f => f.id === questionId);
+}
+
+function toggleFavorite(qIdx) {
+  const q = currentQuiz.questions[qIdx];
+  if (!q || !q.id) return;
+  let favs = getFavorites();
+  const existIdx = favs.findIndex(f => f.id === q.id);
+  if (existIdx >= 0) {
+    favs.splice(existIdx, 1);
+    showToast('已取消收藏');
+  } else {
+    favs.push({ id: q.id, question: q.question, A: q.A, B: q.B, C: q.C, D: q.D, E: q.E, answer: q.answer, chapter: q.chapter, type: q.type, difficulty: q.difficulty, time: Date.now() });
+    showToast('已收藏 &#x2B50;');
+  }
+  saveFavorites(favs);
+  // Update button
+  const btn = document.getElementById('favBtn_' + qIdx);
+  if (btn) btn.innerHTML = isFavorited(q.id) ? '&#x2B50;' : '&#x2606;';
+}
+
+function toggleChallengeFavorite() {
+  const s = challengeState;
+  if (!s || !s.questions[s.currentIndex]) return;
+  const q = s.questions[s.currentIndex];
+  if (!q || !q.id) return;
+  let favs = getFavorites();
+  const existIdx = favs.findIndex(f => f.id === q.id);
+  if (existIdx >= 0) {
+    favs.splice(existIdx, 1);
+    showToast('已取消收藏');
+  } else {
+    favs.push({ id: q.id, question: q.question, A: q.A, B: q.B, C: q.C, D: q.D, E: q.E, answer: q.answer, chapter: q.chapter, type: q.type, difficulty: q.difficulty, time: Date.now() });
+    showToast('已收藏 &#x2B50;');
+  }
+  saveFavorites(favs);
+  const btn = document.getElementById('challengeFavBtn');
+  if (btn) btn.innerHTML = isFavorited(q.id) ? '&#x2B50;' : '&#x2606;';
+}
+
+function renderFavorites() {
+  const favs = getFavorites();
+  const container = document.getElementById('favorites-container');
+  if (!container) return;
+
+  if (favs.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center;padding:60px 20px;">
+        <div style="font-size:48px;margin-bottom:16px;">&#x2606;</div>
+        <h2 style="font-size:20px;font-weight:700;margin-bottom:8px;">暂无收藏题目</h2>
+        <p style="color:var(--text-muted);font-size:14px;">刷题时点击 ☆ 按钮即可收藏重要题目</p>
+      </div>`;
+    return;
+  }
+
+  // Group by chapter
+  const grouped = {};
+  favs.forEach(q => {
+    const ch = q.chapter || '未分类';
+    if (!grouped[ch]) grouped[ch] = [];
+    grouped[ch].push(q);
+  });
+
+  let html = `<div style="padding:20px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <h2 style="font-size:20px;font-weight:900;">&#x2B50; 我的收藏 <span style="font-size:14px;font-weight:400;color:var(--text-muted);">(${favs.length} 题)</span></h2>
+      <button class="btn btn-outline btn-sm" onclick="clearAllFavorites()" style="color:var(--danger);border-color:var(--danger);">清空收藏</button>
+    </div>`;
+
+  Object.keys(grouped).sort().forEach(ch => {
+    html += `<div style="margin-bottom:24px;">
+      <div style="font-size:15px;font-weight:700;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);color:var(--primary);">${ch} (${grouped[ch].length}题)</div>`;
+
+    grouped[ch].forEach((q, i) => {
+      const letters = ['A','B','C','D','E'];
+      const optionsHtml = letters.map(l => q[l] ? `<div style="font-size:13px;padding:2px 0 2px 20px;color:var(--text-secondary);">${l}. ${q[l]}</div>` : '').join('');
+      const globalIdx = favs.indexOf(q);
+
+      html += `
+      <div style="padding:12px;border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px;background:rgba(255,255,255,0.02);">
+        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:6px;">
+          <div style="font-size:12px;color:var(--text-muted);display:flex;gap:8px;">
+            <span>${q.type}</span>${q.difficulty ? `<span>${q.difficulty}</span>` : ''}
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="removeFavorite(${globalIdx})" style="padding:2px 8px;font-size:12px;color:var(--danger);border-color:var(--danger);">取消收藏</button>
+        </div>
+        <div style="font-size:15px;font-weight:600;margin-bottom:6px;line-height:1.6;">${i + 1}. ${q.question}</div>
+        <div style="margin-bottom:6px;">${optionsHtml}</div>
+        <div style="font-size:13px;color:var(--success);font-weight:600;">正确答案：${q.answer}</div>
+      </div>`;
+    });
+
+    html += `</div>`;
+  });
+
+  html += `</div>`;
+  container.innerHTML = html;
+}
+
+function removeFavorite(globalIdx) {
+  let favs = getFavorites();
+  if (globalIdx >= 0 && globalIdx < favs.length) {
+    favs.splice(globalIdx, 1);
+    saveFavorites(favs);
+    showToast('已取消收藏');
+    renderFavorites();
+  }
+}
+
+function clearAllFavorites() {
+  if (confirm('确定要清空所有收藏吗？')) {
+    saveFavorites([]);
+    showToast('收藏已清空');
+    renderFavorites();
   }
 }
 
@@ -55509,8 +55646,10 @@ function renderChallenge() {
 
     <div style="display:flex;justify-content:center;gap:12px;margin-top:20px;">
       ${!isAnswered ? `
+        <button class="btn btn-outline" onclick="toggleChallengeFavorite()" id="challengeFavBtn" title="收藏此题" style="padding:6px 10px;font-size:16px;">${isFavorited(s.questions[s.currentIndex].id) ? '&#x2B50;' : '&#x2606;'}</button>
         <button class="btn btn-primary btn-lg" onclick="submitChallengeAnswer()">提交答案</button>
       ` : `
+        <button class="btn btn-outline" onclick="toggleChallengeFavorite()" id="challengeFavBtn" title="收藏此题" style="padding:6px 10px;font-size:16px;">${isFavorited(s.questions[s.currentIndex].id) ? '&#x2B50;' : '&#x2606;'}</button>
         <button class="btn btn-primary" onclick="nextChallengeQuestion()">下一题</button>
       `}
     </div>
