@@ -2147,6 +2147,7 @@ select.input option { background: #1a1a2e; color: #f1f5f9; }
         </div>
       </div>
     </div>
+    <div id="examHistoryInline" style="margin-top:20px;"></div>
     <div id="examContent" style="display:none;"></div>
     <div id="examResult" style="display:none;"></div>
   </div>
@@ -53689,6 +53690,7 @@ function navigateTo(page) {
     document.getElementById('examContent').style.display = 'none';
     document.getElementById('examResult').style.display = 'none';
     if (currentQuiz.timer) clearInterval(currentQuiz.timer);
+    renderExamHistoryInline();
   }
   if (page === 'challenge' && !challengeState) {
     renderChallengeIntro();
@@ -54393,6 +54395,8 @@ function submitExam() {
     chapterStats,
     difficultyStats,
     timeTaken,
+    scope: document.getElementById('examScope')?.value || 'all',
+    questionIds: currentQuiz.questions.map(q => q.id),
     wrongQuestions: wrongQuestionsInExam.map(q => ({ id: q.id, question: q.question, A: q.A, B: q.B, C: q.C, D: q.D, E: q.E, answer: q.answer, userAnswer: q.userAnswer, chapter: q.chapter, type: q.type, difficulty: q.difficulty }))
   };
   let examRecords = JSON.parse(localStorage.getItem('examRecords') || '[]');
@@ -54679,6 +54683,107 @@ function generateExamAdvice(chapterStats, difficultyStats, singleWrong, multiWro
   }
 
   return advice.join('<br><br>');
+}
+
+function renderExamHistoryInline() {
+  const container = document.getElementById('examHistoryInline');
+  if (!container) return;
+  const records = JSON.parse(localStorage.getItem('examRecords') || '[]');
+
+  if (records.length === 0) {
+    container.innerHTML = '';
+    return;
+  }
+
+  const recordsHtml = records.slice(0, 10).map((r, i) => {
+    const scorePercent = Math.round(r.score / r.totalScore * 100);
+    const rankText = scorePercent >= 90 ? '优秀' : scorePercent >= 80 ? '良好' : scorePercent >= 70 ? '中等' : scorePercent >= 60 ? '及格' : '不及格';
+    const rankColor = scorePercent >= 90 ? '#0D7377' : scorePercent >= 80 ? '#14A085' : scorePercent >= 70 ? '#3b82f6' : scorePercent >= 60 ? '#f59e0b' : '#ef4444';
+    const totalWrong = r.singleWrong + r.multiWrong;
+    const scopeText = r.scope === 'all' ? '全部章节' : r.scope;
+    return `
+      <div class="exam-history-item" style="cursor:default;">
+        <div class="exam-history-header">
+          <div>
+            <span class="exam-history-rank" style="background: ${rankColor}; color: white;">${rankText}</span>
+            <span class="exam-history-date">${r.date}</span>
+            <span style="font-size:11px;color:var(--text-muted);margin-left:6px;">${scopeText}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="exam-history-score">${r.score}<span style="font-size:14px;color:var(--text-muted);">/${r.totalScore}</span></div>
+            ${r.questionIds && r.questionIds.length > 0 ? `<button class="btn btn-outline btn-sm" onclick="retakeExam(${i})" style="font-size:12px;padding:4px 10px;">&#x1F504; 再战</button>` : ''}
+          </div>
+        </div>
+        <div class="exam-history-detail">
+          <span>单选 ${r.singleCorrect}/40</span>
+          <span>多选 ${r.multiCorrect}/10</span>
+          <span style="color:var(--danger);">错 ${totalWrong} 道</span>
+          <span>${Math.floor(r.timeTaken / 60)}分${r.timeTaken % 60}秒</span>
+        </div>
+      </div>`;
+  }).join('');
+
+  container.innerHTML = `
+    <div class="card">
+      <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+        <h3 style="font-size:17px;font-weight:700;">&#x1F4CB; 比武记录</h3>
+        <button class="btn btn-outline btn-sm" onclick="navigateTo('exam-history')">查看全部</button>
+      </div>
+      <div class="card-body" style="padding:0;">
+        ${recordsHtml}
+      </div>
+    </div>
+  `;
+}
+
+function retakeExam(recordIdx) {
+  const records = JSON.parse(localStorage.getItem('examRecords') || '[]');
+  const r = records[recordIdx];
+  if (!r || !r.questionIds || r.questionIds.length === 0) {
+    showToast('该记录没有保存题目信息');
+    return;
+  }
+
+  // 从题库中找到这些题目
+  const qs = r.questionIds.map(id => allQuestions.find(q => q.id === id)).filter(Boolean);
+  if (qs.length === 0) {
+    showToast('题目数据未找到');
+    return;
+  }
+
+  // 使用同样的考试配置
+  const timeMin = Math.max(30, Math.ceil(r.timeTaken / 60));
+
+  currentQuiz = {
+    mode: 'exam',
+    questions: qs,
+    currentIndex: 0,
+    answers: {},
+    results: {},
+    startTime: Date.now(),
+    timer: null,
+    timeLimit: timeMin * 60,
+    timeRemaining: timeMin * 60,
+    submitted: false,
+    examConfig: { singleCount: 40, multiCount: 10, singleScore: 1, multiScore: 2, totalScore: 60 }
+  };
+
+  document.getElementById('examSetup').style.display = 'none';
+  document.getElementById('examHistoryInline').style.display = 'none';
+  document.getElementById('examContent').style.display = '';
+  document.getElementById('examResult').style.display = 'none';
+
+  currentQuiz.timer = setInterval(() => {
+    currentQuiz.timeRemaining--;
+    updateExamTimer();
+    if (currentQuiz.timeRemaining <= 0) {
+      clearInterval(currentQuiz.timer);
+      submitExam();
+    }
+  }, 1000);
+
+  renderExamQuiz();
+  showToast('已加载历史题目，开始再战！');
 }
 
 function renderExamHistory() {
