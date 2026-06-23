@@ -986,13 +986,13 @@ body::after {
 }
 
 .ai-analysis {
-  margin-top: 12px;
-  padding: 16px;
-  background: linear-gradient(135deg, #FFF8DC, #F5F0E8);
-  border-radius: var(--radius-sm);
-  border: 1px solid rgba(139,37,0,0.15);
-  font-size: 14px;
-  line-height: 1.8;
+  margin-top: 16px;
+  padding: 20px;
+  background: rgba(245, 158, 11, 0.08);
+  border-radius: var(--radius);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  font-size: 15px;
+  line-height: 1.9;
   color: var(--text);
 }
 
@@ -1000,13 +1000,49 @@ body::after {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--primary);
-  margin-bottom: 8px;
-  padding: 3px 10px;
-  background: rgba(139,37,0,0.1);
-  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fbbf24;
+  margin-bottom: 12px;
+  padding: 4px 12px;
+  background: rgba(245, 158, 11, 0.12);
+  border-radius: 6px;
+}
+
+.ai-analysis .ai-section {
+  margin-bottom: 14px;
+}
+
+.ai-analysis .ai-section-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fbbf24;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ai-analysis .ai-section-body {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  padding-left: 8px;
+  border-left: 2px solid rgba(245, 158, 11, 0.2);
+}
+
+.ai-analysis .ai-related {
+  background: rgba(255,255,255,0.04);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  margin-top: 10px;
+}
+
+.ai-analysis .ai-related-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #34d399;
+  margin-bottom: 6px;
 }
 
 .ai-loading {
@@ -54472,7 +54508,7 @@ async function requestAIAnalysisForExamWrong(recordIdx, questionIdx) {
     const aiText = config.parse(data) || 'AI 未返回解析内容';
     
     if (containerEl) {
-      containerEl.innerHTML = `<div class="ai-analysis"><div class="ai-label">&#x1F916; AI 智能解析</div><div style="white-space:pre-wrap;line-height:1.8;">${escapeHtml(aiText)}</div></div>`;
+      containerEl.innerHTML = `<div class="ai-analysis"><div class="ai-label">&#x1F916; AI 智能解析</div>${formatAIAnalysis(aiText)}</div>`;
     }
   } catch (err) {
     if (err.name === 'AbortError') {
@@ -54699,15 +54735,30 @@ async function requestAIAnalysis(qIdx) {
     containerEl.innerHTML = `<div class="ai-analysis"><div class="ai-loading"><div class="spinner"></div> AI 正在分析中...</div></div>`;
   }
 
-  const prompt = `解析以下系统解剖学题：
+  const prompt = `请对以下系统解剖学题目进行深度解析，要求结构化输出：
 
-题目：${q.question}
-选项：A.${q.A||'无'} B.${q.B||'无'} C.${q.C||'无'} D.${q.D||'无'} E.${q.E||'无'}
-正确答案：${q.answer} | 题型：${q.type}
+【题目】${q.question}
+【选项】A.${q.A||'无'} B.${q.B||'无'} C.${q.C||'无'} D.${q.D||'无'} E.${q.E||'无'}
+【正确答案】${q.answer} | 【题型】${q.type}
 
-请简要说明：1)为什么选这个答案 2)涉及的知识点 3)易错点 4)记忆技巧。控制在300字内。`;
+请按以下格式输出：
 
-  const systemMsg = '你是系统解剖学教师，回答简洁明了，适合医学生快速理解。';
+【答案解析】
+详细说明为什么正确答案是${q.answer}，每个错误选项错在哪里。
+
+【核心知识点】
+提炼本题涉及的2-3个核心解剖学知识点，用条目列出。
+
+【知识拓展】
+列举与本题相关的、容易混淆或常考的知识点，帮助举一反三（至少2条）。
+
+【易错警示】
+分析学生最容易犯的错误及原因。
+
+【记忆口诀】
+提供一个帮助记忆的口诀或联想方法。`;
+
+  const systemMsg = '你是资深系统解剖学教授，擅长将复杂知识结构化讲解，善于总结归纳和举一反三。回答必须按要求的格式输出，每个部分都要有实质内容，不要省略。';
 
   const modelConfigs = {
     deepseek: {
@@ -54717,7 +54768,7 @@ async function requestAIAnalysis(qIdx) {
         model: 'deepseek-chat',
         messages: [{ role: 'system', content: systemMsg }, { role: 'user', content: prompt }],
         temperature: 0.5,
-        max_tokens: 600
+        max_tokens: 1200
       }),
       parse: (data) => data.choices?.[0]?.message?.content
     },
@@ -54728,7 +54779,7 @@ async function requestAIAnalysis(qIdx) {
         model: 'gpt-4o-mini',
         messages: [{ role: 'system', content: systemMsg }, { role: 'user', content: prompt }],
         temperature: 0.5,
-        max_tokens: 600
+        max_tokens: 1200
       }),
       parse: (data) => data.choices?.[0]?.message?.content
     },
@@ -54737,7 +54788,7 @@ async function requestAIAnalysis(qIdx) {
       headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
       body: () => ({
         model: 'claude-3-haiku-20240307',
-        max_tokens: 600,
+        max_tokens: 1200,
         system: systemMsg,
         messages: [{ role: 'user', content: prompt }]
       }),
@@ -54750,7 +54801,7 @@ async function requestAIAnalysis(qIdx) {
         model: settings.customModel || 'custom-model',
         messages: [{ role: 'system', content: systemMsg }, { role: 'user', content: prompt }],
         temperature: 0.5,
-        max_tokens: 600
+        max_tokens: 1200
       }),
       parse: (data) => data.choices?.[0]?.message?.content
     }
@@ -54786,7 +54837,7 @@ async function requestAIAnalysis(qIdx) {
     const aiText = config.parse(data) || 'AI 未返回解析内容';
 
     if (containerEl) {
-      containerEl.innerHTML = `<div class="ai-analysis"><div class="ai-label">&#x1F916; AI 智能解析</div><div style="white-space:pre-wrap;line-height:1.8;">${escapeHtml(aiText)}</div></div>`;
+      containerEl.innerHTML = `<div class="ai-analysis"><div class="ai-label">&#x1F916; AI 智能解析</div>${formatAIAnalysis(aiText)}</div>`;
     }
   } catch (err) {
     if (err.name === 'AbortError') {
@@ -54803,6 +54854,67 @@ function escapeHtml(text) {
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
+}
+
+function formatAIAnalysis(text) {
+  // Parse structured AI output into formatted HTML
+  const lines = text.split('\n');
+  let html = '';
+  let currentSection = '';
+  let sectionBody = [];
+
+  const sectionIcons = {
+    '答案解析': '&#x2705;',
+    '核心知识点': '&#x1F4DA;',
+    '知识拓展': '&#x1F4A1;',
+    '易错警示': '&#x26A0;',
+    '记忆口诀': '&#x1F3B5;'
+  };
+
+  function flushSection() {
+    if (currentSection && sectionBody.length > 0) {
+      const icon = sectionIcons[currentSection] || '&#x25B6;';
+      const bodyHtml = sectionBody.map(line => {
+        const trimmed = line.trim();
+        if (!trimmed) return '';
+        if (trimmed.startsWith('- ') || trimmed.startsWith('• ')) {
+          return `<div style="margin:4px 0 4px 12px;">&#x2022; ${escapeHtml(trimmed.substring(2))}</div>`;
+        }
+        if (/^\d+[\.\)]/.test(trimmed)) {
+          return `<div style="margin:4px 0 4px 12px;">${escapeHtml(trimmed)}</div>`;
+        }
+        return `<div style="margin:4px 0;">${escapeHtml(trimmed)}</div>`;
+      }).join('');
+
+      html += `<div class="ai-section">
+        <div class="ai-section-title">${icon} ${escapeHtml(currentSection)}</div>
+        <div class="ai-section-body">${bodyHtml}</div>
+      </div>`;
+    }
+    sectionBody = [];
+  }
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    // Match section headers like 【答案解析】 or ## 答案解析
+    const sectionMatch = trimmed.match(/^【(.+)】/) || trimmed.match(/^#{1,2}\s*(.+)/);
+    if (sectionMatch) {
+      flushSection();
+      currentSection = sectionMatch[1].trim();
+      continue;
+    }
+    if (trimmed) {
+      sectionBody.push(line);
+    }
+  }
+  flushSection();
+
+  // If no sections were parsed, treat entire text as plain content
+  if (!html) {
+    html = `<div style="white-space:pre-wrap;line-height:1.8;">${escapeHtml(text)}</div>`;
+  }
+
+  return html;
 }
 
 function onModelChange() {
@@ -55277,33 +55389,48 @@ async function requestChallengeAIAnalysis(qIdx) {
     containerEl.innerHTML = `<div class="ai-analysis"><div class="ai-loading"><div class="spinner"></div> AI 正在分析中...</div></div>`;
   }
 
-  const prompt = `解析以下系统解剖学题：
+  const prompt = `请对以下系统解剖学题目进行深度解析，要求结构化输出：
 
-题目：${q.question}
-选项：A.${q.A||'无'} B.${q.B||'无'} C.${q.C||'无'} D.${q.D||'无'} E.${q.E||'无'}
-正确答案：${q.answer} | 题型：${q.type}
+【题目】${q.question}
+【选项】A.${q.A||'无'} B.${q.B||'无'} C.${q.C||'无'} D.${q.D||'无'} E.${q.E||'无'}
+【正确答案】${q.answer} | 【题型】${q.type}
 
-请简要说明：1)为什么选这个答案 2)涉及的知识点 3)易错点 4)记忆技巧。控制在300字内。`;
+请按以下格式输出：
 
-  const systemMsg = '你是系统解剖学教师，回答简洁明了，适合医学生快速理解。';
+【答案解析】
+详细说明为什么正确答案是${q.answer}，每个错误选项错在哪里。
+
+【核心知识点】
+提炼本题涉及的2-3个核心解剖学知识点，用条目列出。
+
+【知识拓展】
+列举与本题相关的、容易混淆或常考的知识点，帮助举一反三（至少2条）。
+
+【易错警示】
+分析学生最容易犯的错误及原因。
+
+【记忆口诀】
+提供一个帮助记忆的口诀或联想方法。`;
+
+  const systemMsg = '你是资深系统解剖学教授，擅长将复杂知识结构化讲解，善于总结归纳和举一反三。回答必须按要求的格式输出，每个部分都要有实质内容，不要省略。';
 
   const modelConfigs = {
     deepseek: {
       url: 'https://api.deepseek.com/chat/completions',
       headers: { 'Authorization': `Bearer ${apiKey}` },
-      body: () => ({ model: 'deepseek-chat', messages: [{ role: 'system', content: systemMsg }, { role: 'user', content: prompt }], temperature: 0.5, max_tokens: 600 }),
+      body: () => ({ model: 'deepseek-chat', messages: [{ role: 'system', content: systemMsg }, { role: 'user', content: prompt }], temperature: 0.5, max_tokens: 1000 }),
       parse: (data) => data.choices?.[0]?.message?.content
     },
     openai: {
       url: 'https://api.openai.com/v1/chat/completions',
       headers: { 'Authorization': `Bearer ${apiKey}` },
-      body: () => ({ model: 'gpt-4o-mini', messages: [{ role: 'system', content: systemMsg }, { role: 'user', content: prompt }], temperature: 0.5, max_tokens: 600 }),
+      body: () => ({ model: 'gpt-4o-mini', messages: [{ role: 'system', content: systemMsg }, { role: 'user', content: prompt }], temperature: 0.5, max_tokens: 1000 }),
       parse: (data) => data.choices?.[0]?.message?.content
     },
     claude: {
       url: 'https://api.anthropic.com/v1/messages',
       headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-      body: () => ({ model: 'claude-3-haiku-20240307', max_tokens: 600, system: systemMsg, messages: [{ role: 'user', content: prompt }] }),
+      body: () => ({ model: 'claude-3-haiku-20240307', max_tokens: 1000, system: systemMsg, messages: [{ role: 'user', content: prompt }] }),
       parse: (data) => data.content?.[0]?.text
     },
     custom: {
@@ -55344,7 +55471,7 @@ async function requestChallengeAIAnalysis(qIdx) {
     const aiText = config.parse(data) || 'AI 未返回解析内容';
 
     if (containerEl) {
-      containerEl.innerHTML = `<div class="ai-analysis"><div class="ai-label">&#x1F916; AI 智能解析</div><div style="white-space:pre-wrap;line-height:1.8;">${escapeHtml(aiText)}</div></div>`;
+      containerEl.innerHTML = `<div class="ai-analysis"><div class="ai-label">&#x1F916; AI 智能解析</div>${formatAIAnalysis(aiText)}</div>`;
     }
   } catch (err) {
     if (err.name === 'AbortError') {
