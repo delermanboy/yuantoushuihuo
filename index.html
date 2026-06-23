@@ -603,6 +603,213 @@ body::after {
   gap: 4px;
 }
 
+/* ===== 挑战模式（生死试炼）样式 ===== */
+.challenge-hud {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(245,158,11,0.15);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  backdrop-filter: blur(12px);
+}
+
+.challenge-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.challenge-level-badge {
+  text-align: center;
+}
+
+.challenge-level-num {
+  font-size: 22px;
+  font-weight: 900;
+  color: #fbbf24;
+  line-height: 1;
+}
+
+.challenge-level-name {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.challenge-monster {
+  font-size: 40px;
+  animation: monsterPulse 2s ease-in-out infinite;
+}
+
+@keyframes monsterPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.challenge-streak {
+  text-align: center;
+}
+
+.challenge-streak-num {
+  font-size: 22px;
+  font-weight: 900;
+  color: #f87171;
+  line-height: 1;
+}
+
+.challenge-streak-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.challenge-hp-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.challenge-hp-bar-bg {
+  flex: 1;
+  height: 12px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.challenge-hp-bar-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.5s ease, background 0.3s ease;
+  box-shadow: 0 0 10px currentColor;
+}
+
+.challenge-hp-text {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  min-width: 60px;
+  text-align: right;
+}
+
+.challenge-levelup-hint {
+  text-align: center;
+  font-size: 13px;
+  color: #fbbf24;
+  font-weight: 600;
+  margin-top: 8px;
+  animation: pulseHint 1.5s ease-in-out infinite;
+}
+
+@keyframes pulseHint {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.challenge-intro {
+  text-align: center;
+  padding: 40px 24px;
+}
+
+.challenge-intro-emoji {
+  font-size: 56px;
+  margin-bottom: 16px;
+  animation: monsterPulse 2s ease-in-out infinite;
+}
+
+.challenge-rules {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 400px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.challenge-rule-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: rgba(255,255,255,0.04);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.challenge-rule-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.challenge-result {
+  text-align: center;
+  padding: 40px 24px;
+}
+
+.challenge-result-emoji {
+  font-size: 64px;
+  margin-bottom: 16px;
+}
+
+.challenge-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  max-width: 500px;
+  margin: 0 auto 24px;
+}
+
+.challenge-stat-box {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 8px;
+  text-align: center;
+}
+
+.challenge-stat-value {
+  font-size: 24px;
+  font-weight: 900;
+  margin-bottom: 4px;
+}
+
+.challenge-stat-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.challenge-new-record {
+  display: inline-block;
+  padding: 8px 20px;
+  background: linear-gradient(135deg, #f59e0b, #fbbf24);
+  color: #000;
+  font-weight: 700;
+  font-size: 16px;
+  border-radius: 20px;
+  margin-bottom: 20px;
+  animation: monsterPulse 1s ease-in-out infinite;
+}
+
+.challenge-record-box {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  max-width: 500px;
+  margin: 0 auto;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 600px) {
+  .challenge-stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .challenge-monster { font-size: 32px; }
+  .challenge-level-num, .challenge-streak-num { font-size: 18px; }
+}
+
 .btn {
   padding: 10px 24px;
   border-radius: var(--radius-sm);
@@ -1572,6 +1779,7 @@ select.input option { background: #1a1a2e; color: #f1f5f9; }
   <button class="nav-item" data-page="wrong" onclick="navigateTo('wrong')">破绽复盘</button>
   <button class="nav-item" data-page="exam" onclick="navigateTo('exam')">比武大会</button>
   <button class="nav-item" data-page="layered" onclick="navigateTo('layered')">境界突破</button>
+  <button class="nav-item" data-page="challenge" onclick="navigateTo('challenge')">生死试炼</button>
   <button class="nav-item" data-page="settings" onclick="navigateTo('settings')">修炼设置</button>
 </nav>
 
@@ -1636,6 +1844,11 @@ select.input option { background: #1a1a2e; color: #f1f5f9; }
         <div class="mode-icon">&#x1F4CA;</div>
         <h3>境界突破</h3>
         <p>按境界分层修炼，从入门到宗师循序渐进，稳步提升</p>
+      </div>
+      <div class="mode-card scroll-card" onclick="navigateTo('challenge')">
+        <div class="mode-icon">&#x2694;</div>
+        <h3>生死试炼</h3>
+        <p>答对回血，答错受伤，满血连击升级，0血淘汰的极限挑战</p>
       </div>
     </div>
   </div>
@@ -1729,6 +1942,10 @@ select.input option { background: #1a1a2e; color: #f1f5f9; }
 
   <div class="page" id="page-exam-history">
     <div id="examHistoryContent"></div>
+  </div>
+
+  <div class="page" id="page-challenge">
+    <div id="challenge-container"></div>
   </div>
 
   <div class="page" id="page-settings">
@@ -53221,6 +53438,9 @@ function navigateTo(page) {
     document.getElementById('examResult').style.display = 'none';
     if (currentQuiz.timer) clearInterval(currentQuiz.timer);
   }
+  if (page === 'challenge') {
+    renderChallengeIntro();
+  }
 }
 
 function updateStats() {
@@ -54716,6 +54936,323 @@ document.addEventListener('keydown', function(e) {
     else nextQuestion();
   }
 });
+
+// ==================== 挑战模式（打怪升级）====================
+let challengeState = null;
+const CHALLENGE_CONFIG = {
+  hpPerCorrect: 5,           // 答对+5% HP
+  hpPenaltySingle: 10,       // 单选错-10%
+  hpPenaltyMulti: 15,        // 多选错-15%
+  streakToLevelUp: 5,        // 满血连续答对5题升级
+  maxHp: 100,
+  levelNames: ['入门弟子', '外门弟子', '内门弟子', '核心弟子', '真传弟子', '长老', '掌门', '宗师', '大宗师', '武林至尊']
+};
+
+function loadChallengeRecord() {
+  return JSON.parse(localStorage.getItem('challengeRecord') || '{"maxLevel": 1, "maxStreak": 0, "totalAttempts": 0}');
+}
+
+function saveChallengeRecord(record) {
+  localStorage.setItem('challengeRecord', JSON.stringify(record));
+}
+
+function startChallengeMode() {
+  const all = getFilteredQuestions([]);
+  if (all.length === 0) { showToast('题库为空'); return; }
+  const shuffled = shuffleArray([...all]).slice(0, 200);
+
+  challengeState = {
+    questions: shuffled,
+    currentIndex: 0,
+    hp: 100,
+    level: 1,
+    streak: 0,           // 当前连续答对
+    maxStreak: 0,        // 本局最高连击
+    totalCorrect: 0,
+    totalWrong: 0,
+    results: {},
+    answers: {},
+    gameOver: false,
+    leveledUpThisStreak: false
+  };
+
+  navigateTo('challenge');
+  renderChallenge();
+}
+
+function renderChallenge() {
+  const s = challengeState;
+  const q = s.questions[s.currentIndex];
+  if (!q || s.gameOver) { renderChallengeGameOver(); return; }
+
+  const isAnswered = s.results[s.currentIndex] !== undefined;
+  const isMulti = q.type === 'X型题';
+  const letters = ['A','B','C','D','E'];
+  const userAnswer = s.answers[s.currentIndex] || '';
+
+  const levelName = CHALLENGE_CONFIG.levelNames[Math.min(s.level - 1, CHALLENGE_CONFIG.levelNames.length - 1)] || '入门弟子';
+  const nextLevelNeed = Math.max(0, CHALLENGE_CONFIG.streakToLevelUp - s.streak);
+
+  // HP bar color
+  let hpColor = '#22c55e';
+  if (s.hp <= 30) hpColor = '#ef4444';
+  else if (s.hp <= 60) hpColor = '#f59e0b';
+
+  // Monster emoji based on level
+  const monsters = ['🐭','🐍','🐺','🐆','🐻','🐉','👹','👺','💀','👑'];
+  const monster = monsters[Math.min(s.level - 1, monsters.length - 1)];
+
+  let html = `
+    <div class="challenge-hud">
+      <div class="challenge-top-bar">
+        <div class="challenge-level-badge">
+          <div class="challenge-level-num">Lv.${s.level}</div>
+          <div class="challenge-level-name">${levelName}</div>
+        </div>
+        <div class="challenge-monster">${monster}</div>
+        <div class="challenge-streak">
+          <div class="challenge-streak-num">${s.streak}</div>
+          <div class="challenge-streak-label">连击</div>
+        </div>
+      </div>
+      <div class="challenge-hp-bar-wrap">
+        <div class="challenge-hp-bar-bg">
+          <div class="challenge-hp-bar-fill" style="width:${s.hp}%;background:${hpColor};"></div>
+        </div>
+        <div class="challenge-hp-text">${s.hp}% / 100%</div>
+      </div>
+      ${nextLevelNeed > 0 && s.hp >= 100 ? `<div class="challenge-levelup-hint">🔥 再连对 ${nextLevelNeed} 题升级！</div>` : ''}
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <div class="card-body">
+        <div class="question-header">
+          <div class="question-meta">
+            <span class="tag tag-chapter">${q.chapter}</span>
+            <span class="tag tag-type">${q.type}</span>
+            <span class="tag ${q.difficulty === '很容易' ? 'tag-easy' : q.difficulty === '容易' ? 'tag-easy' : q.difficulty === '一般' ? 'tag-normal' : 'tag-hard'}">${q.difficulty}</span>
+          </div>
+          <div class="question-number">${s.currentIndex + 1} / ${s.questions.length}</div>
+        </div>
+        <div class="question-text">${q.question}</div>
+        <div class="options-list">
+          ${letters.map((letter, i) => {
+            const opt = q[letter];
+            if (!opt) return '';
+            let cls = 'option-item';
+            let statusTag = '';
+            if (isAnswered) {
+              cls += ' disabled';
+              const correctLetters = isMulti ? q.answer.split('').sort() : [q.answer];
+              const userLetters = isMulti ? userAnswer.split('').sort() : [userAnswer];
+              if (correctLetters.includes(letter)) {
+                cls += ' correct';
+                statusTag = '<span class="option-status-tag correct-tag">正确</span>';
+              } else if (userLetters.includes(letter) && !correctLetters.includes(letter)) {
+                cls += ' wrong';
+                statusTag = '<span class="option-status-tag wrong-tag">错误</span>';
+              }
+            } else if (isMulti) {
+              if (userAnswer.includes(letter)) cls += ' selected';
+            } else {
+              if (userAnswer === letter) cls += ' selected';
+            }
+            return `<div class="${cls}" onclick="${isAnswered ? '' : isMulti ? `toggleChallengeMultiOption('${letter}')` : `selectChallengeOption('${letter}')`}">
+              <div class="option-letter">${letter}</div>
+              <div class="option-text">${opt}</div>
+              ${statusTag}
+            </div>`;
+          }).join('')}
+        </div>
+        ${isMulti && !isAnswered ? '<div style="font-size:12px;color:var(--text-muted);margin-top:8px;">多选题，可选择多个答案</div>' : ''}
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:center;gap:12px;margin-top:20px;">
+      ${!isAnswered ? `
+        <button class="btn btn-primary btn-lg" onclick="submitChallengeAnswer()">提交答案</button>
+      ` : `
+        <button class="btn btn-primary" onclick="nextChallengeQuestion()">下一题</button>
+      `}
+    </div>
+  `;
+
+  document.getElementById('challenge-container').innerHTML = html;
+}
+
+function selectChallengeOption(letter) {
+  if (challengeState.gameOver) return;
+  challengeState.answers[challengeState.currentIndex] = letter;
+  renderChallenge();
+}
+
+function toggleChallengeMultiOption(letter) {
+  if (challengeState.gameOver) return;
+  const current = challengeState.answers[challengeState.currentIndex] || '';
+  const letters = current.split('');
+  const idx = letters.indexOf(letter);
+  if (idx >= 0) letters.splice(idx, 1);
+  else letters.push(letter);
+  challengeState.answers[challengeState.currentIndex] = letters.sort().join('');
+  renderChallenge();
+}
+
+function submitChallengeAnswer() {
+  const s = challengeState;
+  const idx = s.currentIndex;
+  const q = s.questions[idx];
+  const userAnswer = s.answers[idx] || '';
+  const isMulti = q.type === 'X型题';
+
+  if (!userAnswer) { showToast('请先选择答案'); return; }
+
+  let isCorrect = false;
+  if (isMulti) {
+    isCorrect = q.answer.split('').sort().join('') === userAnswer.split('').sort().join('');
+  } else {
+    isCorrect = userAnswer === q.answer;
+  }
+
+  s.results[idx] = isCorrect;
+
+  if (isCorrect) {
+    s.totalCorrect++;
+    s.hp = Math.min(CHALLENGE_CONFIG.maxHp, s.hp + CHALLENGE_CONFIG.hpPerCorrect);
+    s.streak++;
+    if (s.streak > s.maxStreak) s.maxStreak = s.streak;
+
+    // Level up check: full HP + streak reaches threshold
+    if (s.hp >= 100 && s.streak >= CHALLENGE_CONFIG.streakToLevelUp) {
+      s.level++;
+      s.streak = 0;
+      showToast(`🎉 升级！当前等级：Lv.${s.level} ${CHALLENGE_CONFIG.levelNames[Math.min(s.level - 1, CHALLENGE_CONFIG.levelNames.length - 1)] || ''}`);
+    }
+  } else {
+    s.totalWrong++;
+    const penalty = isMulti ? CHALLENGE_CONFIG.hpPenaltyMulti : CHALLENGE_CONFIG.hpPenaltySingle;
+    s.hp = Math.max(0, s.hp - penalty);
+    s.streak = 0;
+
+    if (s.hp <= 0) {
+      s.gameOver = true;
+      showToast('💀 生命值归零，挑战失败！');
+    }
+  }
+
+  renderChallenge();
+}
+
+function nextChallengeQuestion() {
+  if (challengeState.gameOver) { renderChallengeGameOver(); return; }
+  if (challengeState.currentIndex < challengeState.questions.length - 1) {
+    challengeState.currentIndex++;
+    renderChallenge();
+  } else {
+    renderChallengeGameOver();
+  }
+}
+
+function renderChallengeGameOver() {
+  const s = challengeState;
+  const record = loadChallengeRecord();
+  const isNewRecord = s.level > record.maxLevel || (s.level === record.maxLevel && s.maxStreak > record.maxStreak);
+
+  if (isNewRecord) {
+    record.maxLevel = Math.max(record.maxLevel, s.level);
+    record.maxStreak = Math.max(record.maxStreak, s.maxStreak);
+    record.totalAttempts = (record.totalAttempts || 0) + 1;
+    saveChallengeRecord(record);
+  }
+
+  const levelName = CHALLENGE_CONFIG.levelNames[Math.min(s.level - 1, CHALLENGE_CONFIG.levelNames.length - 1)] || '入门弟子';
+  const survived = s.hp > 0;
+
+  let html = `
+    <div class="challenge-result">
+      <div class="challenge-result-emoji">${survived ? '🏆' : '💀'}</div>
+      <h2 style="font-size:28px;font-weight:900;margin-bottom:8px;">${survived ? '挑战通关！' : '挑战失败'}</h2>
+      <div style="font-size:16px;color:var(--text-secondary);margin-bottom:24px;">${survived ? '你成功打通了所有心法试炼！' : '生命值归零，请重新修炼！'}</div>
+
+      <div class="challenge-stats-grid">
+        <div class="challenge-stat-box">
+          <div class="challenge-stat-value" style="color:#fbbf24;">Lv.${s.level}</div>
+          <div class="challenge-stat-label">最终等级</div>
+          <div style="font-size:12px;color:var(--text-muted);">${levelName}</div>
+        </div>
+        <div class="challenge-stat-box">
+          <div class="challenge-stat-value" style="color:#f87171;">${s.hp}%</div>
+          <div class="challenge-stat-label">剩余生命</div>
+        </div>
+        <div class="challenge-stat-box">
+          <div class="challenge-stat-value" style="color:#34d399;">${s.maxStreak}</div>
+          <div class="challenge-stat-label">最高连击</div>
+        </div>
+        <div class="challenge-stat-box">
+          <div class="challenge-stat-value" style="color:#60a5fa;">${s.totalCorrect}</div>
+          <div class="challenge-stat-label">答对题数</div>
+        </div>
+      </div>
+
+      ${isNewRecord ? `<div class="challenge-new-record">🎉 新纪录！</div>` : ''}
+
+      <div class="challenge-record-box">
+        <div style="font-size:14px;font-weight:700;margin-bottom:8px;">📜 历史最高纪录</div>
+        <div style="display:flex;gap:16px;justify-content:center;">
+          <div>最高等级：<span style="color:#fbbf24;font-weight:700;">Lv.${record.maxLevel}</span></div>
+          <div>最高连击：<span style="color:#34d399;font-weight:700;">${record.maxStreak}</span></div>
+          <div>挑战次数：<span style="color:#60a5fa;font-weight:700;">${record.totalAttempts}</span></div>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:center;gap:12px;margin-top:24px;">
+        <button class="btn btn-primary btn-lg" onclick="startChallengeMode()">再来一局</button>
+        <button class="btn btn-outline" onclick="navigateTo('home')">返回山门</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('challenge-container').innerHTML = html;
+}
+
+function renderChallengeIntro() {
+  const record = loadChallengeRecord();
+  const levelName = CHALLENGE_CONFIG.levelNames[Math.min(record.maxLevel - 1, CHALLENGE_CONFIG.levelNames.length - 1)] || '入门弟子';
+
+  document.getElementById('challenge-container').innerHTML = `
+    <div class="challenge-intro">
+      <div class="challenge-intro-emoji">⚔️</div>
+      <h2 style="font-size:32px;font-weight:900;margin-bottom:12px;background:linear-gradient(135deg,#fbbf24,#f87171);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">生死试炼</h2>
+      <p style="font-size:15px;color:var(--text-secondary);max-width:480px;margin:0 auto 32px;line-height:1.7;">
+        在生死试炼中，每道题目都是一场战斗。<br>
+        答对回血，答错受伤，满血连击可升级。<br>
+        看看你能修炼到何等境界！
+      </p>
+
+      <div class="challenge-rules">
+        <div class="challenge-rule-item"><span class="challenge-rule-icon" style="color:#22c55e;">❤️</span> 答对一题 +${CHALLENGE_CONFIG.hpPerCorrect}% 生命值</div>
+        <div class="challenge-rule-item"><span class="challenge-rule-icon" style="color:#f87171;">💔</span> 单选答错 -${CHALLENGE_CONFIG.hpPenaltySingle}% 生命值</div>
+        <div class="challenge-rule-item"><span class="challenge-rule-icon" style="color:#ef4444;">💀</span> 多选答错 -${CHALLENGE_CONFIG.hpPenaltyMulti}% 生命值</div>
+        <div class="challenge-rule-item"><span class="challenge-rule-icon" style="color:#fbbf24;">🔥</span> 满血连对 ${CHALLENGE_CONFIG.streakToLevelUp} 题升级</div>
+        <div class="challenge-rule-item"><span class="challenge-rule-icon" style="color:#a855f7;">👑</span> 0 血即淘汰，记录最高等级</div>
+      </div>
+
+      ${record.totalAttempts > 0 ? `
+        <div class="challenge-record-box" style="margin-top:24px;">
+          <div style="font-size:14px;font-weight:700;margin-bottom:8px;">📜 你的最高纪录</div>
+          <div style="display:flex;gap:20px;justify-content:center;flex-wrap:wrap;">
+            <div>🏆 最高等级：<span style="color:#fbbf24;font-weight:700;">Lv.${record.maxLevel} ${levelName}</span></div>
+            <div>⚡ 最高连击：<span style="color:#34d399;font-weight:700;">${record.maxStreak}</span></div>
+            <div>🎮 挑战次数：<span style="color:#60a5fa;font-weight:700;">${record.totalAttempts}</span></div>
+          </div>
+        </div>
+      ` : ''}
+
+      <div style="margin-top:32px;">
+        <button class="btn btn-primary btn-lg" onclick="startChallengeMode()" style="font-size:18px;padding:14px 40px;">开始试炼</button>
+      </div>
+    </div>
+  `;
+}
 
 init();
 </script>
