@@ -53438,7 +53438,7 @@ function navigateTo(page) {
     document.getElementById('examResult').style.display = 'none';
     if (currentQuiz.timer) clearInterval(currentQuiz.timer);
   }
-  if (page === 'challenge') {
+  if (page === 'challenge' && !challengeState) {
     renderChallengeIntro();
   }
 }
@@ -53651,7 +53651,7 @@ function renderQuiz() {
       </div>
       <div class="action-right">
         ${!isAnswered ? `<button class="btn btn-primary" onclick="submitAnswer()" ${(!isMulti && !userAnswer) || (isMulti && !userAnswer) ? 'disabled' : ''}>&#x2713; 提交答案</button>` : ''}
-        ${isAnswered && settings.apiKeys?.[settings.aiModel || 'deepseek'] ? `<button class="btn btn-outline" onclick="requestAIAnalysis(${idx})" id="aiBtn_${idx}">&#x1F916; AI解析</button>` : ''}
+        ${isAnswered ? `<button class="btn btn-outline" onclick="requestAIAnalysis(${idx})" id="aiBtn_${idx}">&#x1F916; AI解析</button>` : ''}
         ${idx === total - 1 && answeredCount === total ? `<button class="btn btn-success" onclick="finishQuiz()">&#x1F3C6; 完成练习</button>` : ''}
       </div>
     </div>
@@ -54209,10 +54209,8 @@ function submitExam() {
       <div class="card-header"><h3 style="font-size:16px;font-weight:700;">&#x1F916; AI 智能考情解析</h3></div>
       <div class="card-body" style="padding-top:12px;">
         <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">基于本次考试数据，AI 将为你生成个性化的学习诊断报告，分析薄弱环节并提供查漏补缺建议。</p>
-        ${settings.apiKeys?.[settings.aiModel || 'deepseek'] ? `
-          <button class="btn btn-primary" onclick="requestExamAIAnalysis()" id="examAiAnalysisBtn">&#x1F916; 生成 AI 考情解析</button>
-          <div id="examAiAnalysisResult" style="margin-top:16px;"></div>
-        ` : '<span style="font-size:13px;color:var(--text-muted);">请先在修炼设置中配置 API Key，即可使用 AI 智能考情解析功能</span>'}
+        <button class="btn btn-primary" onclick="requestExamAIAnalysis()" id="examAiAnalysisBtn">&#x1F916; 生成 AI 考情解析</button>
+        <div id="examAiAnalysisResult" style="margin-top:16px;"></div>
       </div>
     </div>
 
@@ -54338,7 +54336,7 @@ function viewExamDetail(idx) {
       <div style="font-size:13px;color:var(--text-secondary);margin-bottom:4px;">${q.chapter} · ${q.type}</div>
       <div style="font-size:14px;margin-bottom:4px;">${i + 1}. ${q.question}</div>
       <div style="font-size:13px;margin-bottom:8px;"><span style="color:var(--danger);">你的答案：${q.userAnswer || '未作答'}</span> · <span style="color:var(--success);">正确答案：${q.answer}</span></div>
-      ${settings.apiKeys?.[settings.aiModel || 'deepseek'] ? `<button class="btn btn-outline btn-sm" onclick="requestAIAnalysisForExamWrong(${idx}, ${i});event.stopPropagation();">&#x1F916; AI 解析</button>` : '<span style="font-size:11px;color:var(--text-muted);">配置 API Key 后可使用 AI 解析</span>'}
+      ${`<button class="btn btn-outline btn-sm" onclick="requestAIAnalysisForExamWrong(${idx}, ${i});event.stopPropagation();">&#x1F916; AI 解析</button>`}
       <div id="examAiAnalysis_${idx}_${i}" style="margin-top:8px;"></div>
     </div>
   `).join('') || '<div style="color:var(--text-muted);font-size:13px;">无错题记录</div>';
