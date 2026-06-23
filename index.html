@@ -54955,9 +54955,8 @@ function saveChallengeRecord(record) {
 }
 
 function startChallengeMode() {
-  const all = getFilteredQuestions([]);
-  if (all.length === 0) { showToast('题库为空'); return; }
-  const shuffled = shuffleArray([...all]).slice(0, 200);
+  if (!allQuestions || allQuestions.length === 0) { showToast('题库为空'); return; }
+  const shuffled = shuffleArray([...allQuestions]).slice(0, 200);
 
   challengeState = {
     questions: shuffled,
