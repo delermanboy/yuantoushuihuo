@@ -55803,7 +55803,6 @@ async function requestChallengeAIAnalysis(qIdx) {
 }
 
 init();
-}
 
 // ==================== Knowledge System ====================
 
@@ -56289,7 +56288,8 @@ ${questionContext}
   function makeDraggable(el, onMove) {
     let dragging = false, startX, startY, startLeft, startTop, hasMoved;
     el.addEventListener('mousedown', function(e) {
-      if (e.target.closest('button,span[onclick],input')) return;
+      e.preventDefault();
+      e.stopPropagation();
       dragging = true;
       hasMoved = false;
       const rect = el.getBoundingClientRect();
@@ -56297,24 +56297,18 @@ ${questionContext}
       startY = e.clientY;
       startLeft = rect.left;
       startTop = rect.top;
-      // Convert bottom/right positioning to top/left
       el.style.left = startLeft + 'px';
       el.style.top = startTop + 'px';
       el.style.right = 'auto';
       el.style.bottom = 'auto';
-      e.preventDefault();
     });
     document.addEventListener('mousemove', function(e) {
       if (!dragging) return;
       const dx = e.clientX - startX;
       const dy = e.clientY - startY;
       if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasMoved = true;
-      let newLeft = startLeft + dx;
-      let newTop = startTop + dy;
-      const w = window.innerWidth, h = window.innerHeight;
-      const ew = el.offsetWidth, eh = el.offsetHeight;
-      newLeft = Math.max(0, Math.min(w - ew, newLeft));
-      newTop = Math.max(0, Math.min(h - eh, newTop));
+      let newLeft = Math.max(0, Math.min(window.innerWidth - el.offsetWidth, startLeft + dx));
+      let newTop = Math.max(0, Math.min(window.innerHeight - el.offsetHeight, startTop + dy));
       el.style.left = newLeft + 'px';
       el.style.top = newTop + 'px';
       if (onMove) onMove(newLeft, newTop);
@@ -56326,11 +56320,52 @@ ${questionContext}
     el._hasMoved = function() { return hasMoved; };
   }
 
+  // Touch support
+  function addTouchDrag(el, onMove) {
+    let dragging = false, startX, startY, startLeft, startTop, hasMoved;
+    el.addEventListener('touchstart', function(e) {
+      if (e.target.closest('button,span[onclick],input')) return;
+      const touch = e.touches[0];
+      dragging = true;
+      hasMoved = false;
+      const rect = el.getBoundingClientRect();
+      startX = touch.clientX;
+      startY = touch.clientY;
+      startLeft = rect.left;
+      startTop = rect.top;
+      el.style.left = startLeft + 'px';
+      el.style.top = startTop + 'px';
+      el.style.right = 'auto';
+      el.style.bottom = 'auto';
+    }, { passive: true });
+    document.addEventListener('touchmove', function(e) {
+      if (!dragging) return;
+      const touch = e.touches[0];
+      const dx = touch.clientX - startX;
+      const dy = touch.clientY - startY;
+      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasMoved = true;
+      let newLeft = Math.max(0, Math.min(window.innerWidth - el.offsetWidth, startLeft + dx));
+      let newTop = Math.max(0, Math.min(window.innerHeight - el.offsetHeight, startTop + dy));
+      el.style.left = newLeft + 'px';
+      el.style.top = newTop + 'px';
+      if (onMove) onMove(newLeft, newTop);
+    }, { passive: true });
+    document.addEventListener('touchend', function() { dragging = false; });
+  }
+
   // FAB drag
   makeDraggable(fab, function(left, top) {
-    if (chatOpen) {
-      panel.style.left = left + 'px';
-      panel.style.top = (top - panel.offsetHeight - 8) + 'px';
+    if (chatOpen && panel) {
+      panel.style.left = Math.max(0, left) + 'px';
+      panel.style.top = Math.max(0, top - panel.offsetHeight - 8) + 'px';
+      panel.style.right = 'auto';
+      panel.style.bottom = 'auto';
+    }
+  });
+  addTouchDrag(fab, function(left, top) {
+    if (chatOpen && panel) {
+      panel.style.left = Math.max(0, left) + 'px';
+      panel.style.top = Math.max(0, top - panel.offsetHeight - 8) + 'px';
       panel.style.right = 'auto';
       panel.style.bottom = 'auto';
     }
@@ -56350,42 +56385,36 @@ ${questionContext}
     chatOpen = !chatOpen;
     if (chatOpen) {
       panel.style.display = 'flex';
-      // Position panel above FAB
       const fabRect = fab.getBoundingClientRect();
-      if (fab.style.bottom && fab.style.bottom !== 'auto') {
-        // still using bottom/right, position panel above
-        panel.style.bottom = (parseInt(fab.style.bottom) || 80) + 36 + 8 + 'px';
-        panel.style.right = fab.style.right || '16px';
-        panel.style.top = 'auto';
-        panel.style.left = 'auto';
-      } else {
-        panel.style.left = fabRect.left + 'px';
-        panel.style.top = (fabRect.top - panel.offsetHeight - 8) + 'px';
-        panel.style.right = 'auto';
-        panel.style.bottom = 'auto';
-      }
+      panel.style.left = fabRect.left + 'px';
+      panel.style.top = Math.max(0, fabRect.top - panel.offsetHeight - 8) + 'px';
+      panel.style.right = 'auto';
+      panel.style.bottom = 'auto';
       loadAIChatHistory();
-      setTimeout(function() { input.focus(); }, 100);
+      setTimeout(function() { if (input) input.focus(); }, 100);
     } else {
       panel.style.display = 'none';
     }
   };
 
-  // Override FAB click to check drag
-  fab.onclick = function(e) {
+  // FAB click
+  fab.addEventListener('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
     if (fab._hasMoved && fab._hasMoved()) return;
     toggleAIChat();
-  };
+  });
 
   // --- Chat history ---
   function loadAIChatHistory() {
     try {
       const history = JSON.parse(localStorage.getItem('aiChatHistory') || '[]');
       renderMessages(history);
-    } catch (e) { msgContainer.innerHTML = ''; }
+    } catch (e) { if (msgContainer) msgContainer.innerHTML = ''; }
   }
 
   function renderMessages(messages) {
+    if (!msgContainer) return;
     msgContainer.innerHTML = '';
     messages.forEach(function(msg) {
       appendMessageDOM(msg.role, msg.content, msg.time, false);
@@ -56394,6 +56423,7 @@ ${questionContext}
   }
 
   function appendMessageDOM(role, content, time, scroll) {
+    if (!msgContainer) return;
     const wrapper = document.createElement('div');
     wrapper.className = 'ai-chat-msg ' + role;
     const timeStr = time ? new Date(time).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) : '';
@@ -56403,6 +56433,7 @@ ${questionContext}
   }
 
   function showTypingIndicator() {
+    if (!msgContainer) return;
     const wrapper = document.createElement('div');
     wrapper.className = 'ai-chat-msg assistant';
     wrapper.id = 'aiChatTyping';
@@ -56417,7 +56448,7 @@ ${questionContext}
   }
 
   function scrollChatToBottom() {
-    msgContainer.scrollTop = msgContainer.scrollHeight;
+    if (msgContainer) msgContainer.scrollTop = msgContainer.scrollHeight;
   }
 
   function saveAIChatHistory(messages) {
@@ -56435,7 +56466,7 @@ ${questionContext}
 
   window.clearAIChatHistory = function() {
     localStorage.removeItem('aiChatHistory');
-    msgContainer.innerHTML = '';
+    if (msgContainer) msgContainer.innerHTML = '';
     showToast('对话记录已清空');
   };
 
@@ -56452,7 +56483,6 @@ ${questionContext}
       return;
     }
 
-    // Add user message
     const userMsg = { role: 'user', content: text, time: Date.now() };
     appendMessageDOM('user', text, userMsg.time);
     const history = getAIChatHistory();
@@ -56467,53 +56497,25 @@ ${questionContext}
       deepseek: {
         url: 'https://api.deepseek.com/chat/completions',
         headers: { 'Authorization': 'Bearer ' + apiKey },
-        body: function(msgs) {
-          return {
-            model: 'deepseek-chat',
-            messages: [{ role: 'system', content: systemMsg }].concat(msgs),
-            temperature: 0.5,
-            max_tokens: 800
-          };
-        },
+        body: function(msgs) { return { model: 'deepseek-chat', messages: [{ role: 'system', content: systemMsg }].concat(msgs), temperature: 0.5, max_tokens: 800 }; },
         parse: function(data) { return data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content; }
       },
       openai: {
         url: 'https://api.openai.com/v1/chat/completions',
         headers: { 'Authorization': 'Bearer ' + apiKey },
-        body: function(msgs) {
-          return {
-            model: 'gpt-4o-mini',
-            messages: [{ role: 'system', content: systemMsg }].concat(msgs),
-            temperature: 0.5,
-            max_tokens: 800
-          };
-        },
+        body: function(msgs) { return { model: 'gpt-4o-mini', messages: [{ role: 'system', content: systemMsg }].concat(msgs), temperature: 0.5, max_tokens: 800 }; },
         parse: function(data) { return data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content; }
       },
       claude: {
         url: 'https://api.anthropic.com/v1/messages',
         headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-        body: function(msgs) {
-          return {
-            model: 'claude-3-haiku-20240307',
-            max_tokens: 800,
-            system: systemMsg,
-            messages: msgs
-          };
-        },
+        body: function(msgs) { return { model: 'claude-3-haiku-20240307', max_tokens: 800, system: systemMsg, messages: msgs }; },
         parse: function(data) { return data.content && data.content[0] && data.content[0].text; }
       },
       custom: {
         url: settings.customUrl || '',
         headers: { 'Authorization': 'Bearer ' + apiKey },
-        body: function(msgs) {
-          return {
-            model: settings.customModel || 'custom-model',
-            messages: [{ role: 'system', content: systemMsg }].concat(msgs),
-            temperature: 0.5,
-            max_tokens: 800
-          };
-        },
+        body: function(msgs) { return { model: settings.customModel || 'custom-model', messages: [{ role: 'system', content: systemMsg }].concat(msgs), temperature: 0.5, max_tokens: 800 }; },
         parse: function(data) { return data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content; }
       }
     };
@@ -56521,24 +56523,19 @@ ${questionContext}
     const config = modelConfigs[model];
     if (!config || !config.url) {
       removeTypingIndicator();
-      const errMsg = { role: 'assistant', content: '模型配置不完整，请检查设置。', time: Date.now() };
-      appendMessageDOM('assistant', errMsg.content, errMsg.time);
-      history.push(errMsg);
-      saveAIChatHistory(history);
+      appendMessageDOM('assistant', '模型配置不完整，请检查设置。', Date.now());
       aiChatSending = false;
       return;
     }
 
-    // Build messages array for API (last 20 messages for context)
     const apiMsgs = history.slice(-20).map(function(m) { return { role: m.role, content: m.content }; });
-
     const controller = new AbortController();
     const timeoutId = setTimeout(function() { controller.abort(); }, 15000);
 
     try {
       const resp = await fetch(config.url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: Object.assign({ 'Content-Type': 'application/json' }, config.headers),
         body: JSON.stringify(config.body(apiMsgs)),
         signal: controller.signal
       });
@@ -56547,13 +56544,12 @@ ${questionContext}
       if (!resp.ok) {
         const errText = await resp.text();
         let errMsg = 'API 请求失败 (' + resp.status + ')';
-        try { const errData = JSON.parse(errText); errMsg = errData.error && errData.error.message || errData.error && errData.error.code || errMsg; } catch (e) {}
+        try { const errData = JSON.parse(errText); errMsg = errData.error && errData.error.message || errMsg; } catch (e) {}
         throw new Error(errMsg);
       }
 
       const data = await resp.json();
       const aiText = config.parse(data) || 'AI 未返回内容';
-
       removeTypingIndicator();
       const aiMsg = { role: 'assistant', content: aiText, time: Date.now() };
       appendMessageDOM('assistant', aiText, aiMsg.time);
@@ -56562,15 +56558,14 @@ ${questionContext}
     } catch (err) {
       clearTimeout(timeoutId);
       removeTypingIndicator();
-      let errContent = err.name === 'AbortError' ? '请求超时（15秒），请检查网络或稍后重试。' : '请求失败: ' + err.message;
-      const errObj = { role: 'assistant', content: errContent, time: Date.now() };
-      appendMessageDOM('assistant', errContent, errObj.time);
-      history.push(errObj);
+      const errContent = err.name === 'AbortError' ? '请求超时（15秒），请检查网络。' : '请求失败: ' + err.message;
+      appendMessageDOM('assistant', errContent, Date.now());
+      history.push({ role: 'assistant', content: errContent, time: Date.now() });
       saveAIChatHistory(history);
     }
 
     aiChatSending = false;
-    input.focus();
+    if (input) input.focus();
   };
 })();
 
