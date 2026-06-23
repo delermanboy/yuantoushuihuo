@@ -54859,12 +54859,17 @@ function viewExamDetail(idx) {
     .map(([diff, s]) => `<div class="exam-detail-row"><span>${diff}</span><span style="color:var(--danger);font-weight:600;">${s.wrong}/${s.total} 错</span></div>`).join('') || '<div style="color:var(--text-muted);font-size:13px;">无难度错题</div>';
 
   const wrongListHtml = (r.wrongQuestions || []).map((q, i) => {
+    // 补全旧记录缺失的选项数据
+    if (q.id && !q.A) {
+      const fullQ = allQuestions.find(aq => aq.id === q.id);
+      if (fullQ) { q.A = fullQ.A; q.B = fullQ.B; q.C = fullQ.C; q.D = fullQ.D; q.E = fullQ.E; q.chapter = q.chapter || fullQ.chapter; q.type = q.type || fullQ.type; q.difficulty = q.difficulty || fullQ.difficulty; }
+    }
     const letters = ['A','B','C','D','E'];
     const optionsHtml = letters.map(l => q[l] ? `<div style="font-size:13px;padding:4px 0 4px 20px;color:var(--text-secondary);">${l}. ${q[l]}</div>` : '').join('');
     return `
     <div class="exam-wrong-item" style="padding:14px;border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:10px;background:rgba(255,255,255,0.02);">
       <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;display:flex;gap:8px;flex-wrap:wrap;">
-        <span>${q.chapter}</span><span>${q.type}</span>${q.difficulty ? `<span>${q.difficulty}</span>` : ''}
+        <span>${q.chapter || '未知章节'}</span><span>${q.type || '未知题型'}</span>${q.difficulty ? `<span>${q.difficulty}</span>` : ''}
       </div>
       <div style="font-size:15px;font-weight:600;margin-bottom:8px;line-height:1.6;color:var(--text);">${i + 1}. ${q.question}</div>
       <div style="margin-bottom:8px;">${optionsHtml}</div>
@@ -54899,7 +54904,7 @@ function viewExamDetail(idx) {
     <div style="margin-bottom:12px;"><div style="font-size:13px;font-weight:700;margin-bottom:6px;">&#x1F4CA; 章节错题</div>${chapterWrongHtml}</div>
     <div style="margin-bottom:12px;"><div style="font-size:13px;font-weight:700;margin-bottom:6px;">&#x1F4CA; 难度错题</div>${diffWrongHtml}</div>
     <div><div style="font-size:13px;font-weight:700;margin-bottom:6px;">&#x1F4DD; 错题回顾</div>${wrongListHtml}</div>
-  `, `<button class="btn btn-outline" onclick="closeModal()">关闭</button>`);
+  `, `<button class="btn btn-outline" onclick="closeModal()">关闭</button> ${r.questionIds && r.questionIds.length > 0 ? `<button class="btn btn-primary" onclick="closeModal();retakeExam(${idx})">&#x1F504; 再战一次</button>` : ''}`);
 }
 
 async function requestAIAnalysisForExamWrong(recordIdx, questionIdx) {
