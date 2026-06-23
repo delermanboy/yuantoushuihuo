@@ -206,6 +206,11 @@ body::after {
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+
 .card {
   background: var(--card);
   border-radius: var(--radius-lg);
@@ -54256,6 +54261,41 @@ function submitExam() {
       <button class="btn btn-success" onclick="navigateTo('exam-history')">比武记录</button>
     </div>
   `;
+
+  // 不及格弹出梗图
+  if (scorePercent < 60) {
+    setTimeout(() => showFailMeme(), 800);
+  }
+}
+
+function showFailMeme() {
+  const memes = [
+    'https://raw.githubusercontent.com/delermanboy/yuantoushuihuo/main/fail_meme_1.jpg',
+    'https://raw.githubusercontent.com/delermanboy/yuantoushuihuo/main/fail_meme_2.jpg',
+    'https://raw.githubusercontent.com/delermanboy/yuantoushuihuo/main/fail_meme_3.jpg'
+  ];
+  const quotes = [
+    '时间差不多啰...该回去翻书了',
+    '你连南京医科大学都考不上...还不快去复习！',
+    '解剖学不过关，拿什么拯救病人？'
+  ];
+  const idx = Math.floor(Math.random() * memes.length);
+
+  const overlay = document.createElement('div');
+  overlay.id = 'failMemeOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.85);animation:fadeIn 0.3s ease;cursor:pointer;';
+  overlay.onclick = () => overlay.remove();
+
+  overlay.innerHTML = `
+    <div style="text-align:center;max-width:90vw;max-height:90vh;animation:scaleIn 0.4s ease;">
+      <div style="font-size:20px;font-weight:900;color:#f87171;margin-bottom:16px;text-shadow:0 0 20px rgba(248,113,113,0.3);">&#x1F3B5; 比武失败 &#x1F3B5;</div>
+      <img src="${memes[idx]}" style="max-width:100%;max-height:60vh;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.5);border:2px solid rgba(248,113,113,0.3);" />
+      <div style="font-size:15px;color:rgba(248,200,200,0.9);margin-top:16px;font-weight:600;">${quotes[idx]}</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:8px;">点击任意处关闭</div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
 }
 
 function generateExamAdvice(chapterStats, difficultyStats, singleWrong, multiWrong) {
