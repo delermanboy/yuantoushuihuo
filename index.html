@@ -54175,7 +54175,7 @@ function submitExam() {
     chapterStats,
     difficultyStats,
     timeTaken,
-    wrongQuestions: wrongQuestionsInExam.map(q => ({ id: q.id, question: q.question, answer: q.answer, userAnswer: q.userAnswer, chapter: q.chapter, type: q.type }))
+    wrongQuestions: wrongQuestionsInExam.map(q => ({ id: q.id, question: q.question, A: q.A, B: q.B, C: q.C, D: q.D, E: q.E, answer: q.answer, userAnswer: q.userAnswer, chapter: q.chapter, type: q.type, difficulty: q.difficulty }))
   };
   let examRecords = JSON.parse(localStorage.getItem('examRecords') || '[]');
   examRecords.unshift(examRecord);
@@ -54407,15 +54407,25 @@ function viewExamDetail(idx) {
     .sort((a, b) => b[1].wrong - a[1].wrong)
     .map(([diff, s]) => `<div class="exam-detail-row"><span>${diff}</span><span style="color:var(--danger);font-weight:600;">${s.wrong}/${s.total} 错</span></div>`).join('') || '<div style="color:var(--text-muted);font-size:13px;">无难度错题</div>';
 
-  const wrongListHtml = (r.wrongQuestions || []).map((q, i) => `
-    <div class="exam-wrong-item" style="padding:12px;border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px;background:rgba(255,255,255,0.02);">
-      <div style="font-size:13px;color:var(--text-secondary);margin-bottom:4px;">${q.chapter} · ${q.type}</div>
-      <div style="font-size:14px;margin-bottom:4px;">${i + 1}. ${q.question}</div>
-      <div style="font-size:13px;margin-bottom:8px;"><span style="color:var(--danger);">你的答案：${q.userAnswer || '未作答'}</span> · <span style="color:var(--success);">正确答案：${q.answer}</span></div>
+  const wrongListHtml = (r.wrongQuestions || []).map((q, i) => {
+    const letters = ['A','B','C','D','E'];
+    const optionsHtml = letters.map(l => q[l] ? `<div style="font-size:13px;padding:4px 0 4px 20px;color:var(--text-secondary);">${l}. ${q[l]}</div>` : '').join('');
+    return `
+    <div class="exam-wrong-item" style="padding:14px;border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:10px;background:rgba(255,255,255,0.02);">
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;display:flex;gap:8px;flex-wrap:wrap;">
+        <span>${q.chapter}</span><span>${q.type}</span>${q.difficulty ? `<span>${q.difficulty}</span>` : ''}
+      </div>
+      <div style="font-size:15px;font-weight:600;margin-bottom:8px;line-height:1.6;color:var(--text);">${i + 1}. ${q.question}</div>
+      <div style="margin-bottom:8px;">${optionsHtml}</div>
+      <div style="font-size:13px;margin-bottom:8px;display:flex;gap:16px;flex-wrap:wrap;">
+        <span style="color:var(--danger);font-weight:600;">你的答案：${q.userAnswer || '未作答'}</span>
+        <span style="color:var(--success);font-weight:600;">正确答案：${q.answer}</span>
+      </div>
       ${`<button class="btn btn-outline btn-sm" onclick="requestAIAnalysisForExamWrong(${idx}, ${i});event.stopPropagation();">&#x1F916; AI 解析</button>`}
       <div id="examAiAnalysis_${idx}_${i}" style="margin-top:8px;"></div>
     </div>
-  `).join('') || '<div style="color:var(--text-muted);font-size:13px;">无错题记录</div>';
+  `;
+  }).join('') || '<div style="color:var(--text-muted);font-size:13px;">无错题记录</div>';
 
   showModal('考试详情', `
     <div style="text-align:center;margin-bottom:16px;">
