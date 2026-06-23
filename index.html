@@ -4,43 +4,44 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>源头活水 - 系统解剖学刷题平台</title>
+<title>武林秘籍 - 系统解剖学修炼场</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&display=swap');
 
 :root {
-  --primary: #6366f1;
-  --primary-light: #818cf8;
-  --primary-dark: #4f46e5;
-  --primary-bg: #eef2ff;
-  --success: #10b981;
-  --success-bg: #ecfdf5;
-  --danger: #ef4444;
-  --danger-bg: #fef2f2;
-  --warning: #f59e0b;
-  --warning-bg: #fffbeb;
-  --info: #3b82f6;
-  --info-bg: #eff6ff;
-  --bg: #f8fafc;
-  --card: #ffffff;
-  --text: #1e293b;
-  --text-secondary: #64748b;
-  --text-muted: #94a3b8;
-  --border: #e2e8f0;
-  --shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
-  --shadow-md: 0 4px 6px -1px rgba(0,0,0,.07), 0 2px 4px -2px rgba(0,0,0,.05);
-  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,.08), 0 4px 6px -4px rgba(0,0,0,.04);
-  --shadow-xl: 0 20px 25px -5px rgba(0,0,0,.08), 0 8px 10px -6px rgba(0,0,0,.04);
-  --radius: 12px;
-  --radius-sm: 8px;
-  --radius-lg: 16px;
+  --primary: #8B2500;
+  --primary-light: #B8860B;
+  --primary-dark: #5C1A00;
+  --primary-bg: #FFF8DC;
+  --success: #2E7D32;
+  --success-bg: #E8F5E9;
+  --danger: #C62828;
+  --danger-bg: #FFEBEE;
+  --warning: #E65100;
+  --warning-bg: #FFF3E0;
+  --info: #1565C0;
+  --info-bg: #E3F2FD;
+  --bg: #F5F0E8;
+  --card: #FFFDF7;
+  --text: #2D1810;
+  --text-secondary: #6D5E52;
+  --text-muted: #9E8E7E;
+  --border: #D4C4B0;
+  --shadow: 0 2px 8px rgba(45,24,16,0.08), 0 1px 3px rgba(45,24,16,0.06);
+  --shadow-md: 0 4px 12px rgba(45,24,16,0.1), 0 2px 4px rgba(45,24,16,0.08);
+  --shadow-lg: 0 8px 24px rgba(45,24,16,0.12), 0 4px 8px rgba(45,24,16,0.08);
+  --shadow-xl: 0 16px 40px rgba(45,24,16,0.14), 0 8px 16px rgba(45,24,16,0.1);
+  --radius: 8px;
+  --radius-sm: 4px;
+  --radius-lg: 12px;
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
-  font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Noto Sans SC', 'ZCOOL XiaoWei', -apple-system, BlinkMacSystemFont, sans-serif;
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
@@ -50,22 +51,8 @@ body {
 body::before {
   content: '';
   position: fixed;
-  top: -50%;
-  right: -30%;
-  width: 80vw;
-  height: 80vw;
-  background: radial-gradient(circle, rgba(99,102,241,0.06) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
-}
-body::after {
-  content: '';
-  position: fixed;
-  bottom: -40%;
-  left: -20%;
-  width: 60vw;
-  height: 60vw;
-  background: radial-gradient(circle, rgba(16,185,129,0.04) 0%, transparent 70%);
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23D4C4B0' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
   pointer-events: none;
   z-index: 0;
 }
@@ -74,15 +61,14 @@ body::after {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(255,255,255,0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, #2D1810 0%, #3D2820 100%);
+  border-bottom: 2px solid var(--primary-light);
   padding: 0 24px;
   height: 64px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  box-shadow: 0 2px 12px rgba(45,24,16,0.3);
 }
 
 .logo {
@@ -96,29 +82,28 @@ body::after {
 .logo-icon {
   width: 36px;
   height: 36px;
-  background: linear-gradient(135deg, var(--primary), #a78bfa);
-  border-radius: 10px;
+  background: linear-gradient(135deg, #8B2500, #B8860B);
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: #FFF8DC;
   font-size: 18px;
   font-weight: 900;
-  box-shadow: 0 2px 8px rgba(99,102,241,0.3);
+  box-shadow: 0 2px 8px rgba(139,37,0,0.4);
+  border: 1px solid rgba(184,134,11,0.3);
 }
 
 .logo-text {
   font-size: 20px;
   font-weight: 700;
-  background: linear-gradient(135deg, var(--primary-dark), #7c3aed);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #FFF8DC;
+  font-family: 'ZCOOL XiaoWei', serif;
 }
 
 .logo-sub {
   font-size: 11px;
-  color: var(--text-muted);
+  color: rgba(255,248,220,0.6);
   font-weight: 400;
   margin-left: 2px;
 }
@@ -149,7 +134,7 @@ body::after {
   display: flex;
   gap: 4px;
   padding: 12px 24px;
-  background: var(--card);
+  background: linear-gradient(180deg, #FFFDF7 0%, #F5F0E8 100%);
   border-bottom: 1px solid var(--border);
   overflow-x: auto;
   position: sticky;
@@ -159,7 +144,7 @@ body::after {
 
 .nav-item {
   padding: 8px 18px;
-  border-radius: 20px;
+  border-radius: 4px;
   font-size: 14px;
   font-weight: 500;
   color: var(--text-secondary);
@@ -169,17 +154,18 @@ body::after {
   border: none;
   background: none;
   user-select: none;
+  font-family: 'ZCOOL XiaoWei', serif;
 }
 
 .nav-item:hover {
-  background: var(--bg);
-  color: var(--text);
+  background: rgba(139,37,0,0.08);
+  color: var(--primary);
 }
 
 .nav-item.active {
-  background: var(--primary);
-  color: white;
-  box-shadow: 0 2px 8px rgba(99,102,241,0.3);
+  background: linear-gradient(135deg, #8B2500, #A0522D);
+  color: #FFF8DC;
+  box-shadow: 0 2px 8px rgba(139,37,0,0.3);
 }
 
 .main {
@@ -222,16 +208,28 @@ body::after {
 .hero {
   text-align: center;
   padding: 48px 24px 40px;
+  position: relative;
+}
+
+.hero::before {
+  content: '武';
+  position: absolute;
+  top: 20px;
+  right: 40px;
+  font-size: 80px;
+  font-family: 'ZCOOL XiaoWei', serif;
+  color: rgba(139,37,0,0.04);
+  font-weight: 900;
+  pointer-events: none;
 }
 
 .hero h1 {
   font-size: 36px;
   font-weight: 900;
   margin-bottom: 12px;
-  background: linear-gradient(135deg, var(--primary-dark), #7c3aed, #ec4899);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--primary-dark);
+  font-family: 'ZCOOL XiaoWei', serif;
+  text-shadow: 2px 2px 4px rgba(139,37,0,0.1);
 }
 
 .hero p {
@@ -257,6 +255,17 @@ body::after {
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
   transition: var(--transition);
+  position: relative;
+}
+
+.stat-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 20%;
+  right: 20%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--primary-light), transparent);
 }
 
 .stat-card:hover {
@@ -268,6 +277,7 @@ body::after {
   font-size: 28px;
   font-weight: 900;
   margin-bottom: 4px;
+  font-family: 'ZCOOL XiaoWei', serif;
 }
 
 .stat-label {
@@ -305,15 +315,15 @@ body::after {
   top: 0;
   left: 0;
   right: 0;
-  height: 4px;
+  height: 3px;
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 
-.mode-card:nth-child(1)::before { background: linear-gradient(90deg, #6366f1, #818cf8); }
-.mode-card:nth-child(2)::before { background: linear-gradient(90deg, #10b981, #34d399); }
-.mode-card:nth-child(3)::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
-.mode-card:nth-child(4)::before { background: linear-gradient(90deg, #ef4444, #f87171); }
-.mode-card:nth-child(5)::before { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+.mode-card:nth-child(1)::before { background: linear-gradient(90deg, #8B2500, #B8860B); }
+.mode-card:nth-child(2)::before { background: linear-gradient(90deg, #2E7D32, #4CAF50); }
+.mode-card:nth-child(3)::before { background: linear-gradient(90deg, #E65100, #FF9800); }
+.mode-card:nth-child(4)::before { background: linear-gradient(90deg, #C62828, #E53935); }
+.mode-card:nth-child(5)::before { background: linear-gradient(90deg, #1565C0, #42A5F5); }
 
 .mode-card:hover {
   transform: translateY(-4px);
@@ -545,23 +555,25 @@ body::after {
 }
 
 .btn-primary {
-  background: var(--primary);
-  color: white;
-  box-shadow: 0 2px 8px rgba(99,102,241,0.3);
+  background: linear-gradient(135deg, #8B2500, #A0522D);
+  color: #FFF8DC;
+  box-shadow: 0 2px 8px rgba(139,37,0,0.3);
+  border: 1px solid rgba(184,134,11,0.3);
 }
 
 .btn-primary:hover {
-  background: var(--primary-dark);
-  box-shadow: 0 4px 12px rgba(99,102,241,0.4);
+  background: linear-gradient(135deg, #5C1A00, #8B2500);
+  box-shadow: 0 4px 12px rgba(139,37,0,0.4);
   transform: translateY(-1px);
 }
 
 .btn-success {
-  background: var(--success);
-  color: white;
+  background: linear-gradient(135deg, #2E7D32, #4CAF50);
+  color: #FFF8DC;
+  border: 1px solid rgba(46,125,50,0.3);
 }
 
-.btn-success:hover { background: #059669; }
+.btn-success:hover { background: linear-gradient(135deg, #1B5E20, #2E7D32); }
 
 .btn-outline {
   background: var(--card);
@@ -571,12 +583,14 @@ body::after {
 
 .btn-outline:hover {
   background: var(--bg);
-  border-color: var(--text-muted);
+  border-color: var(--primary-light);
+  color: var(--primary);
 }
 
 .btn-danger {
-  background: var(--danger);
-  color: white;
+  background: linear-gradient(135deg, #C62828, #E53935);
+  color: #FFF8DC;
+  border: 1px solid rgba(198,40,40,0.3);
 }
 
 .btn-sm {
@@ -708,9 +722,9 @@ body::after {
 .ai-analysis {
   margin-top: 12px;
   padding: 16px;
-  background: linear-gradient(135deg, #f5f3ff, #eef2ff);
+  background: linear-gradient(135deg, #FFF8DC, #F5F0E8);
   border-radius: var(--radius-sm);
-  border: 1px solid rgba(99,102,241,0.15);
+  border: 1px solid rgba(139,37,0,0.15);
   font-size: 14px;
   line-height: 1.8;
   color: var(--text);
@@ -725,7 +739,7 @@ body::after {
   color: var(--primary);
   margin-bottom: 8px;
   padding: 3px 10px;
-  background: rgba(99,102,241,0.1);
+  background: rgba(139,37,0,0.1);
   border-radius: 4px;
 }
 
@@ -751,8 +765,8 @@ body::after {
 }
 
 .exam-header {
-  background: linear-gradient(135deg, var(--primary-dark), #7c3aed);
-  color: white;
+  background: linear-gradient(135deg, var(--primary-dark), #8B4513);
+  color: #FFF8DC;
   padding: 24px;
   border-radius: var(--radius-lg);
   margin-bottom: 24px;
@@ -789,10 +803,8 @@ body::after {
 .exam-score {
   font-size: 72px;
   font-weight: 900;
-  background: linear-gradient(135deg, var(--primary), #a78bfa);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--primary-dark);
+  font-family: 'ZCOOL XiaoWei', serif;
   line-height: 1;
   margin-bottom: 8px;
 }
@@ -873,8 +885,74 @@ body::after {
 .input:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+  box-shadow: 0 0 0 3px rgba(139,37,0,0.1);
 }
+
+/* 考试记录样式 */
+.exam-history-item {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.exam-history-item:hover {
+  background: var(--bg);
+}
+
+.exam-history-item:last-child { border-bottom: none; }
+
+.exam-history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.exam-history-rank {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  margin-right: 8px;
+}
+
+.exam-history-date {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.exam-history-score {
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--primary-dark);
+  font-family: 'ZCOOL XiaoWei', serif;
+}
+
+.exam-history-detail {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.exam-detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 13px;
+  border-bottom: 1px dashed var(--border);
+}
+
+.exam-detail-row:last-child { border-bottom: none; }
+
+.exam-wrong-item {
+  padding: 10px 0;
+  border-bottom: 1px dashed var(--border);
+}
+
+.exam-wrong-item:last-child { border-bottom: none; }
 
 .wrong-item {
   padding: 16px 20px;
@@ -1250,19 +1328,19 @@ body::after {
 
 <header class="header">
   <div class="logo" onclick="navigateTo('home')">
-    <div class="logo-icon water-flow">&#x1F4A7;</div>
+    <div class="logo-icon">&#x2694;</div>
     <div>
-      <div class="logo-text">源头活水</div>
-      <div class="logo-sub">系统解剖学刷题平台</div>
+      <div class="logo-text">武林秘籍</div>
+      <div class="logo-sub">系统解剖学修炼场</div>
     </div>
   </div>
   <div class="header-right">
-    <div class="stats-badge">
-      <span>已刷</span>
+    <div class="stats-badge" style="background: rgba(139,37,0,0.15); color: #FFF8DC; border: 1px solid rgba(184,134,11,0.2);">
+      <span>已修炼</span>
       <span class="num" id="totalDone">0</span>
-      <span>题</span>
+      <span>道</span>
     </div>
-    <div class="stats-badge" style="background: var(--success-bg); color: var(--success);">
+    <div class="stats-badge" style="background: rgba(46,125,50,0.15); color: #E8F5E9; border: 1px solid rgba(46,125,50,0.2);">
       <span>正确率</span>
       <span class="num" id="totalAccuracy">0%</span>
     </div>
@@ -1270,13 +1348,13 @@ body::after {
 </header>
 
 <nav class="nav">
-  <button class="nav-item active" data-page="home" onclick="navigateTo('home')">首页</button>
-  <button class="nav-item" data-page="chapter" onclick="navigateTo('chapter')">章节练习</button>
-  <button class="nav-item" data-page="random" onclick="startRandomQuiz()">乱序练习</button>
-  <button class="nav-item" data-page="wrong" onclick="navigateTo('wrong')">错题练习</button>
-  <button class="nav-item" data-page="exam" onclick="navigateTo('exam')">考试模式</button>
-  <button class="nav-item" data-page="layered" onclick="navigateTo('layered')">分层练习</button>
-  <button class="nav-item" data-page="settings" onclick="navigateTo('settings')">设置</button>
+  <button class="nav-item active" data-page="home" onclick="navigateTo('home')">山门</button>
+  <button class="nav-item" data-page="chapter" onclick="navigateTo('chapter')">门派修炼</button>
+  <button class="nav-item" data-page="random" onclick="startRandomQuiz()">乱序修炼</button>
+  <button class="nav-item" data-page="wrong" onclick="navigateTo('wrong')">破绽复盘</button>
+  <button class="nav-item" data-page="exam" onclick="navigateTo('exam')">比武大会</button>
+  <button class="nav-item" data-page="layered" onclick="navigateTo('layered')">境界突破</button>
+  <button class="nav-item" data-page="settings" onclick="navigateTo('settings')">修炼设置</button>
 </nav>
 
 <div class="toast" id="toast"></div>
@@ -1285,55 +1363,55 @@ body::after {
 
   <div class="page active" id="page-home">
     <div class="hero">
-      <h1>源头活水，学无止境</h1>
-      <p>系统解剖学智能刷题平台，涵盖18个章节、3800+道精选试题，助你高效备考</p>
+      <h1>武林秘籍，修炼无止境</h1>
+      <p>系统解剖学修炼场，涵盖18大门派、3800+道心法试题，助你打通任督二脉</p>
     </div>
 
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-number" id="statTotal">0</div>
-        <div class="stat-label">题库总量</div>
+        <div class="stat-label">心法总量</div>
       </div>
       <div class="stat-card">
         <div class="stat-number" id="statDone">0</div>
-        <div class="stat-label">已刷题目</div>
+        <div class="stat-label">已修炼</div>
       </div>
       <div class="stat-card">
         <div class="stat-number" id="statWrong">0</div>
-        <div class="stat-label">错题数量</div>
+        <div class="stat-label">破绽记录</div>
       </div>
       <div class="stat-card">
         <div class="stat-number" id="statAccuracy">0%</div>
-        <div class="stat-label">正确率</div>
+        <div class="stat-label">功力值</div>
       </div>
     </div>
 
-    <div class="section-title"><span class="emoji">&#x1F3AF;</span> 选择练习模式</div>
+    <div class="section-title"><span class="emoji">&#x2694;</span> 选择修炼模式</div>
     <div class="mode-grid">
       <div class="mode-card" onclick="navigateTo('chapter')">
         <div class="mode-icon">&#x1F4D6;</div>
-        <h3>章节练习</h3>
-        <p>按章节分类刷题，系统梳理每个章节知识点，适合阶段性复习</p>
+        <h3>门派修炼</h3>
+        <p>按门派分类修炼，系统梳理每个门派心法，适合阶段性闭关</p>
       </div>
       <div class="mode-card" onclick="startRandomQuiz()">
         <div class="mode-icon">&#x1F500;</div>
-        <h3>乱序练习</h3>
-        <p>随机抽取题目，打破章节界限，全面检验知识掌握程度</p>
+        <h3>乱序修炼</h3>
+        <p>随机抽取心法，打破门派界限，全面检验功力深浅</p>
       </div>
       <div class="mode-card" onclick="navigateTo('wrong')">
         <div class="mode-icon">&#x1F4DD;</div>
-        <h3>错题练习</h3>
-        <p>专攻做错的题目，反复练习薄弱环节，消灭知识盲区</p>
+        <h3>破绽复盘</h3>
+        <p>专攻破绽之处，反复修炼薄弱环节，消灭武学盲区</p>
       </div>
       <div class="mode-card" onclick="navigateTo('exam')">
         <div class="mode-icon">&#x1F3C3;</div>
-        <h3>考试模式</h3>
-        <p>模拟真实考试环境，限时答题，检验综合应试能力</p>
+        <h3>比武大会</h3>
+        <p>模拟真实比武环境，限时作答，检验综合武学造诣</p>
       </div>
       <div class="mode-card" onclick="navigateTo('layered')">
         <div class="mode-icon">&#x1F4CA;</div>
-        <h3>分层练习</h3>
-        <p>按难度分层刷题，从易到难循序渐进，稳步提升</p>
+        <h3>境界突破</h3>
+        <p>按境界分层修炼，从入门到宗师循序渐进，稳步提升</p>
       </div>
     </div>
   </div>
@@ -1366,25 +1444,21 @@ body::after {
     <div id="examSetup">
       <div class="card">
         <div class="card-header">
-          <h3 style="font-size:17px;font-weight:700;">考试设置</h3>
+          <h3 style="font-size:17px;font-weight:700;">比武大会</h3>
         </div>
         <div class="card-body">
-          <div class="settings-row">
-            <div>
-              <div class="settings-label">考试题数</div>
-              <div class="settings-desc">从题库中随机抽取指定数量的题目</div>
+          <div class="exam-info-banner" style="background: linear-gradient(135deg, rgba(139,37,0,0.08), rgba(184,134,11,0.08)); border: 1px solid rgba(139,37,0,0.15); border-radius: var(--radius); padding: 16px 20px; margin-bottom: 20px;">
+            <div style="font-size: 15px; font-weight: 700; color: var(--primary-dark); margin-bottom: 8px; font-family: 'ZCOOL XiaoWei', serif;">&#x2694; 比武规则</div>
+            <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.8;">
+              <span style="display:inline-block; margin-right: 16px;">&#x1F3AF; 单选题 <strong style="color:var(--primary);">40道</strong>，每道 <strong style="color:var(--primary);">1分</strong></span>
+              <span style="display:inline-block; margin-right: 16px;">&#x1F3AF; 多选题 <strong style="color:var(--primary);">10道</strong>，每道 <strong style="color:var(--primary);">2分</strong></span>
+              <span style="display:inline-block;">&#x1F3C6; 满分 <strong style="color:var(--primary);">60分</strong></span>
             </div>
-            <select class="select" id="examCount">
-              <option value="20">20题</option>
-              <option value="50" selected>50题</option>
-              <option value="100">100题</option>
-              <option value="150">150题</option>
-            </select>
           </div>
           <div class="settings-row">
             <div>
-              <div class="settings-label">考试时间（分钟）</div>
-              <div class="settings-desc">超时将自动交卷</div>
+              <div class="settings-label">比武时间（分钟）</div>
+              <div class="settings-desc">超时将自动结束比武</div>
             </div>
             <select class="select" id="examTime">
               <option value="30">30分钟</option>
@@ -1396,15 +1470,15 @@ body::after {
           </div>
           <div class="settings-row">
             <div>
-              <div class="settings-label">题目范围</div>
-              <div class="settings-desc">选择考试的章节范围</div>
+              <div class="settings-label">比武范围</div>
+              <div class="settings-desc">选择比武的门派范围</div>
             </div>
             <select class="select" id="examScope">
-              <option value="all">全部章节</option>
+              <option value="all">全部门派</option>
             </select>
           </div>
           <div style="text-align:center;margin-top:24px;">
-            <button class="btn btn-primary btn-lg" onclick="startExam()">&#x1F3C3; 开始考试</button>
+            <button class="btn btn-primary btn-lg" onclick="startExam()">&#x2694; 开始比武</button>
           </div>
         </div>
       </div>
@@ -1429,10 +1503,14 @@ body::after {
     <div id="page-wrong-content"></div>
   </div>
 
+  <div class="page" id="page-exam-history">
+    <div id="examHistoryContent"></div>
+  </div>
+
   <div class="page" id="page-settings">
     <div class="card">
       <div class="card-header">
-        <h3 style="font-size:17px;font-weight:700;">设置</h3>
+        <h3 style="font-size:17px;font-weight:700;">修炼设置</h3>
       </div>
       <div class="card-body">
         <div class="api-key-section">
@@ -55124,6 +55202,7 @@ function navigateTo(page) {
 
   if (page === 'home') updateStats();
   if (page === 'wrong') renderWrongList();
+  if (page === 'exam-history') renderExamHistory();
   if (page === 'chapter') filterChapters();
   if (page === 'exam') {
     document.getElementById('examSetup').style.display = '';
@@ -55551,17 +55630,28 @@ function renderExamScope() {
 }
 
 function startExam() {
-  const count = parseInt(document.getElementById('examCount').value);
   const timeMin = parseInt(document.getElementById('examTime').value);
   const scope = document.getElementById('examScope').value;
 
   let pool = scope === 'all' ? [...allQuestions] : allQuestions.filter(q => q.chapter === scope);
-  if (pool.length < count) {
-    showToast(`该范围只有 ${pool.length} 道题，不足 ${count} 题`);
+
+  // 分离单选和多选题
+  const singlePool = pool.filter(q => q.type !== 'X型题');
+  const multiPool = pool.filter(q => q.type === 'X型题');
+
+  if (singlePool.length < 40) {
+    showToast(`该范围单选题只有 ${singlePool.length} 道，不足40道`);
+    return;
+  }
+  if (multiPool.length < 10) {
+    showToast(`该范围多选题只有 ${multiPool.length} 道，不足10道`);
     return;
   }
 
-  const qs = shuffleArray(pool).slice(0, count);
+  // 抽取40单选 + 10多选
+  const singleQs = shuffleArray(singlePool).slice(0, 40);
+  const multiQs = shuffleArray(multiPool).slice(0, 10);
+  const qs = [...singleQs, ...multiQs];
 
   currentQuiz = {
     mode: 'exam',
@@ -55573,7 +55663,8 @@ function startExam() {
     timer: null,
     timeLimit: timeMin * 60,
     timeRemaining: timeMin * 60,
-    submitted: false
+    submitted: false,
+    examConfig: { singleCount: 40, multiCount: 10, singleScore: 1, multiScore: 2, totalScore: 60 }
   };
 
   document.getElementById('examSetup').style.display = 'none';
@@ -55730,18 +55821,46 @@ function submitExam() {
   if (currentQuiz.timer) clearInterval(currentQuiz.timer);
   currentQuiz.submitted = true;
 
-  let correct = 0;
+  // 统计变量
+  let singleCorrect = 0, singleWrong = 0, singleUnanswered = 0;
+  let multiCorrect = 0, multiWrong = 0, multiUnanswered = 0;
+  const chapterStats = {};
+  const difficultyStats = {};
+  const wrongQuestionsInExam = [];
+
   currentQuiz.questions.forEach((q, idx) => {
     const userAnswer = currentQuiz.answers[idx] || '';
-    if (!userAnswer) return;
     const isMulti = q.type === 'X型题';
     let isCorrect = false;
-    if (isMulti) {
-      isCorrect = q.answer.split('').sort().join('') === userAnswer.split('').sort().join('');
+
+    if (!userAnswer) {
+      if (isMulti) multiUnanswered++; else singleUnanswered++;
     } else {
-      isCorrect = userAnswer === q.answer;
+      if (isMulti) {
+        isCorrect = q.answer.split('').sort().join('') === userAnswer.split('').sort().join('');
+      } else {
+        isCorrect = userAnswer === q.answer;
+      }
+      if (isCorrect) {
+        if (isMulti) multiCorrect++; else singleCorrect++;
+      } else {
+        if (isMulti) multiWrong++; else singleWrong++;
+        wrongQuestionsInExam.push({ ...q, userAnswer, isMulti });
+      }
     }
-    if (isCorrect) correct++;
+
+    // 章节统计
+    chapterStats[q.chapter] = chapterStats[q.chapter] || { total: 0, correct: 0, wrong: 0 };
+    chapterStats[q.chapter].total++;
+    if (isCorrect) chapterStats[q.chapter].correct++;
+    else chapterStats[q.chapter].wrong++;
+
+    // 难度统计
+    const diff = q.difficulty || '未知';
+    difficultyStats[diff] = difficultyStats[diff] || { total: 0, correct: 0, wrong: 0 };
+    difficultyStats[diff].total++;
+    if (isCorrect) difficultyStats[diff].correct++;
+    else difficultyStats[diff].wrong++;
 
     questionStats[q.id] = { correct: isCorrect, time: Date.now() };
     if (!isCorrect) {
@@ -55766,34 +55885,246 @@ function submitExam() {
   localStorage.setItem('wrongQuestions', JSON.stringify(wrongQuestions));
   updateStats();
 
-  const total = currentQuiz.questions.length;
-  const unanswered = total - Object.keys(currentQuiz.answers).filter(k => currentQuiz.answers[k]).length;
-  const accuracy = Math.round(correct / total * 100);
+  // 计算分数
+  const cfg = currentQuiz.examConfig;
+  const score = singleCorrect * cfg.singleScore + multiCorrect * cfg.multiScore;
+  const totalScore = cfg.totalScore;
   const timeTaken = Math.round((Date.now() - currentQuiz.startTime) / 1000);
   const timeMin = Math.floor(timeTaken / 60);
   const timeSec = timeTaken % 60;
 
+  // 生成复习建议
+  const advice = generateExamAdvice(chapterStats, difficultyStats, singleWrong, multiWrong);
+
+  // 保存考试记录
+  const examRecord = {
+    id: Date.now(),
+    date: new Date().toLocaleString('zh-CN'),
+    score,
+    totalScore,
+    singleCorrect, singleWrong, singleUnanswered,
+    multiCorrect, multiWrong, multiUnanswered,
+    chapterStats,
+    difficultyStats,
+    timeTaken,
+    wrongQuestions: wrongQuestionsInExam.map(q => ({ id: q.id, question: q.question, answer: q.answer, userAnswer: q.userAnswer, chapter: q.chapter, type: q.type }))
+  };
+  let examRecords = JSON.parse(localStorage.getItem('examRecords') || '[]');
+  examRecords.unshift(examRecord);
+  if (examRecords.length > 50) examRecords = examRecords.slice(0, 50);
+  localStorage.setItem('examRecords', JSON.stringify(examRecords));
+
   document.getElementById('examContent').style.display = 'none';
   document.getElementById('examResult').style.display = '';
+
+  // 生成结果HTML
+  const scorePercent = Math.round(score / totalScore * 100);
+  const rankText = scorePercent >= 90 ? '武学宗师' : scorePercent >= 80 ? '一代大侠' : scorePercent >= 70 ? '江湖高手' : scorePercent >= 60 ? '初入江湖' : '江湖菜鸟';
+  const rankColor = scorePercent >= 90 ? '#B8860B' : scorePercent >= 80 ? '#2E7D32' : scorePercent >= 70 ? '#1565C0' : scorePercent >= 60 ? '#E65100' : '#C62828';
+
+  // 章节错题详情
+  const chapterWrongHtml = Object.entries(chapterStats)
+    .filter(([_, s]) => s.wrong > 0)
+    .sort((a, b) => b[1].wrong - a[1].wrong)
+    .map(([ch, s]) => {
+      const pct = Math.round(s.wrong / s.total * 100);
+      return `<div class="exam-detail-row"><span>${ch}</span><span style="color:var(--danger);font-weight:600;">${s.wrong}/${s.total} 错 (${pct}%)</span></div>`;
+    }).join('') || '<div style="color:var(--text-muted);font-size:13px;">无章节错题，功力深厚！</div>';
+
+  // 难度错题详情
+  const diffWrongHtml = Object.entries(difficultyStats)
+    .filter(([_, s]) => s.wrong > 0)
+    .sort((a, b) => b[1].wrong - a[1].wrong)
+    .map(([diff, s]) => {
+      const pct = Math.round(s.wrong / s.total * 100);
+      return `<div class="exam-detail-row"><span>${diff}</span><span style="color:var(--danger);font-weight:600;">${s.wrong}/${s.total} 错 (${pct}%)</span></div>`;
+    }).join('') || '<div style="color:var(--text-muted);font-size:13px;">无难度错题，功力深厚！</div>';
 
   document.getElementById('examResult').innerHTML = `
     <div class="card">
       <div class="exam-result">
-        <div class="exam-score">${accuracy}</div>
-        <div class="exam-score-label">考试得分（百分制）</div>
-        <div class="exam-stats">
-          <div class="exam-stat-item"><div class="num" style="color:var(--success);">${correct}</div><div class="label">正确</div></div>
-          <div class="exam-stat-item"><div class="num" style="color:var(--danger);">${total - correct - unanswered}</div><div class="label">错误</div></div>
-          <div class="exam-stat-item"><div class="num" style="color:var(--text-muted);">${unanswered}</div><div class="label">未答</div></div>
+        <div class="exam-rank-badge" style="background: linear-gradient(135deg, ${rankColor}, ${rankColor}88); color: white; padding: 4px 16px; border-radius: 20px; font-size: 14px; font-weight: 700; margin-bottom: 12px; display: inline-block;">${rankText}</div>
+        <div class="exam-score" style="font-size: 56px;">${score}</div>
+        <div class="exam-score-label">比武得分 / ${totalScore}分</div>
+        <div class="exam-stats" style="margin: 20px 0;">
+          <div class="exam-stat-item"><div class="num" style="color:var(--success);">${singleCorrect}</div><div class="label">单选对</div></div>
+          <div class="exam-stat-item"><div class="num" style="color:var(--danger);">${singleWrong}</div><div class="label">单选错</div></div>
+          <div class="exam-stat-item"><div class="num" style="color:var(--success);">${multiCorrect}</div><div class="label">多选对</div></div>
+          <div class="exam-stat-item"><div class="num" style="color:var(--danger);">${multiWrong}</div><div class="label">多选错</div></div>
+          <div class="exam-stat-item"><div class="num" style="color:var(--text-muted);">${singleUnanswered + multiUnanswered}</div><div class="label">未答</div></div>
           <div class="exam-stat-item"><div class="num" style="color:var(--primary);">${timeMin}:${String(timeSec).padStart(2, '0')}</div><div class="label">用时</div></div>
-        </div>
-        <div style="display:flex;justify-content:center;gap:12px;">
-          <button class="btn btn-outline" onclick="navigateTo('home')">返回首页</button>
-          <button class="btn btn-primary" onclick="reviewExamAnswers()">查看解析</button>
         </div>
       </div>
     </div>
+
+    <div class="card" style="margin-top: 16px;">
+      <div class="card-header"><h3 style="font-size:16px;font-weight:700;">&#x1F4CA; 门派破绽分布</h3></div>
+      <div class="card-body" style="padding-top:12px;">
+        ${chapterWrongHtml}
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 16px;">
+      <div class="card-header"><h3 style="font-size:16px;font-weight:700;">&#x1F4CA; 境界破绽分布</h3></div>
+      <div class="card-body" style="padding-top:12px;">
+        ${diffWrongHtml}
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 16px;">
+      <div class="card-header"><h3 style="font-size:16px;font-weight:700;">&#x1F4AD; 修炼建议</h3></div>
+      <div class="card-body" style="padding-top:12px;">
+        <div style="font-size:14px;line-height:1.8;color:var(--text-secondary);">${advice}</div>
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:center;gap:12px;margin-top:20px;margin-bottom:40px;">
+      <button class="btn btn-outline" onclick="navigateTo('home')">返回山门</button>
+      <button class="btn btn-primary" onclick="reviewExamAnswers()">查看解析</button>
+      <button class="btn btn-success" onclick="navigateTo('exam-history')">比武记录</button>
+    </div>
   `;
+}
+
+function generateExamAdvice(chapterStats, difficultyStats, singleWrong, multiWrong) {
+  const advice = [];
+
+  // 总体评价
+  const totalWrong = Object.values(chapterStats).reduce((s, c) => s + c.wrong, 0);
+  if (totalWrong === 0) {
+    advice.push('&#x1F3C6; <strong>完美通关！</strong> 你在本次比武中无一破绽，已臻武学宗师之境！');
+    return advice.join('<br>');
+  }
+
+  // 单选/多选建议
+  if (singleWrong > 0) {
+    advice.push(`&#x2694; <strong>单选题</strong>：错了 ${singleWrong} 道，建议加强基础心法的修炼，夯实根基。`);
+  }
+  if (multiWrong > 0) {
+    advice.push(`&#x2694; <strong>多选题</strong>：错了 ${multiWrong} 道，多选题需要全面掌握知识点，注意遗漏选项，建议逐一排查薄弱环节。`);
+  }
+
+  // 章节建议
+  const weakChapters = Object.entries(chapterStats)
+    .filter(([_, s]) => s.wrong > 0)
+    .sort((a, b) => b[1].wrong - a[1].wrong)
+    .slice(0, 3);
+  if (weakChapters.length > 0) {
+    advice.push(`&#x1F4D6; <strong>薄弱门派</strong>：${weakChapters.map(([ch, s]) => `${ch}(${s.wrong}道)`).join('、')}，建议重点修炼这些门派的心法。`);
+  }
+
+  // 难度建议
+  const hardDiffs = Object.entries(difficultyStats)
+    .filter(([d, s]) => s.wrong > 0 && (d === '难' || d === '很难'));
+  if (hardDiffs.length > 0) {
+    advice.push(`&#x1F525; <strong>高难度挑战</strong>：难题共错 ${hardDiffs.reduce((s, [_, c]) => s + c.wrong, 0)} 道，高难度题目是拉开差距的关键，建议深入理解核心概念。`);
+  }
+
+  return advice.join('<br><br>');
+}
+
+function renderExamHistory() {
+  const container = document.getElementById('examHistoryContent');
+  const records = JSON.parse(localStorage.getItem('examRecords') || '[]');
+
+  if (records.length === 0) {
+    container.innerHTML = `
+      <div class="card">
+        <div class="empty-state">
+          <div class="icon">&#x2694;</div>
+          <h3>暂无比武记录</h3>
+          <p>还未参加过比武大会，快去挑战吧！</p>
+          <button class="btn btn-primary" style="margin-top:16px;" onclick="navigateTo('exam')">前往比武</button>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const recordsHtml = records.map((r, i) => {
+    const scorePercent = Math.round(r.score / r.totalScore * 100);
+    const rankText = scorePercent >= 90 ? '武学宗师' : scorePercent >= 80 ? '一代大侠' : scorePercent >= 70 ? '江湖高手' : scorePercent >= 60 ? '初入江湖' : '江湖菜鸟';
+    const rankColor = scorePercent >= 90 ? '#B8860B' : scorePercent >= 80 ? '#2E7D32' : scorePercent >= 70 ? '#1565C0' : scorePercent >= 60 ? '#E65100' : '#C62828';
+    const totalWrong = r.singleWrong + r.multiWrong;
+    return `
+      <div class="exam-history-item" onclick="viewExamDetail(${i})">
+        <div class="exam-history-header">
+          <div>
+            <span class="exam-history-rank" style="background: ${rankColor}; color: white;">${rankText}</span>
+            <span class="exam-history-date">${r.date}</span>
+          </div>
+          <div class="exam-history-score">${r.score}<span style="font-size:14px;color:var(--text-muted);">/${r.totalScore}</span></div>
+        </div>
+        <div class="exam-history-detail">
+          <span>单选 ${r.singleCorrect}/40</span>
+          <span>多选 ${r.multiCorrect}/10</span>
+          <span style="color:var(--danger);">错 ${totalWrong} 道</span>
+          <span>${Math.floor(r.timeTaken / 60)}分${r.timeTaken % 60}秒</span>
+        </div>
+      </div>`;
+  }).join('');
+
+  container.innerHTML = `
+    <div class="card">
+      <div class="card-header">
+        <h3 style="font-size:17px;font-weight:700;">&#x2694; 比武记录</h3>
+        <span style="font-size:13px;color:var(--text-muted);">共 ${records.length} 场</span>
+      </div>
+      <div class="card-body" style="padding:0;">
+        ${recordsHtml}
+      </div>
+    </div>
+  `;
+}
+
+function viewExamDetail(idx) {
+  const records = JSON.parse(localStorage.getItem('examRecords') || '[]');
+  const r = records[idx];
+  if (!r) return;
+
+  const scorePercent = Math.round(r.score / r.totalScore * 100);
+  const rankText = scorePercent >= 90 ? '武学宗师' : scorePercent >= 80 ? '一代大侠' : scorePercent >= 70 ? '江湖高手' : scorePercent >= 60 ? '初入江湖' : '江湖菜鸟';
+  const rankColor = scorePercent >= 90 ? '#B8860B' : scorePercent >= 80 ? '#2E7D32' : scorePercent >= 70 ? '#1565C0' : scorePercent >= 60 ? '#E65100' : '#C62828';
+
+  const chapterWrongHtml = Object.entries(r.chapterStats || {})
+    .filter(([_, s]) => s.wrong > 0)
+    .sort((a, b) => b[1].wrong - a[1].wrong)
+    .map(([ch, s]) => `<div class="exam-detail-row"><span>${ch}</span><span style="color:var(--danger);font-weight:600;">${s.wrong}/${s.total} 错</span></div>`).join('') || '<div style="color:var(--text-muted);font-size:13px;">无门派破绽</div>';
+
+  const diffWrongHtml = Object.entries(r.difficultyStats || {})
+    .filter(([_, s]) => s.wrong > 0)
+    .sort((a, b) => b[1].wrong - a[1].wrong)
+    .map(([diff, s]) => `<div class="exam-detail-row"><span>${diff}</span><span style="color:var(--danger);font-weight:600;">${s.wrong}/${s.total} 错</span></div>`).join('') || '<div style="color:var(--text-muted);font-size:13px;">无境界破绽</div>';
+
+  const wrongListHtml = (r.wrongQuestions || []).map((q, i) => `
+    <div class="exam-wrong-item">
+      <div style="font-size:13px;color:var(--text-secondary);margin-bottom:4px;">${q.chapter} · ${q.type}</div>
+      <div style="font-size:14px;margin-bottom:4px;">${i + 1}. ${q.question}</div>
+      <div style="font-size:13px;"><span style="color:var(--danger);">你的答案：${q.userAnswer || '未作答'}</span> · <span style="color:var(--success);">正确答案：${q.answer}</span></div>
+    </div>
+  `).join('') || '<div style="color:var(--text-muted);font-size:13px;">无错题记录</div>';
+
+  showModal('比武详情', `
+    <div style="text-align:center;margin-bottom:16px;">
+      <div style="display:inline-block;background: linear-gradient(135deg, ${rankColor}, ${rankColor}88); color: white; padding: 4px 16px; border-radius: 20px; font-size: 14px; font-weight: 700;">${rankText}</div>
+      <div style="font-size: 36px; font-weight: 900; color: var(--primary-dark); margin: 8px 0;">${r.score}<span style="font-size:16px;color:var(--text-muted);">/${r.totalScore}</span></div>
+      <div style="font-size:13px;color:var(--text-secondary);">${r.date} · ${Math.floor(r.timeTaken / 60)}分${r.timeTaken % 60}秒</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
+      <div style="background:var(--bg);padding:10px;border-radius:var(--radius-sm);text-align:center;">
+        <div style="font-size:12px;color:var(--text-muted);">单选题</div>
+        <div style="font-size:16px;font-weight:700;color:var(--success);">${r.singleCorrect}</div>
+        <div style="font-size:11px;color:var(--danger);">错 ${r.singleWrong}</div>
+      </div>
+      <div style="background:var(--bg);padding:10px;border-radius:var(--radius-sm);text-align:center;">
+        <div style="font-size:12px;color:var(--text-muted);">多选题</div>
+        <div style="font-size:16px;font-weight:700;color:var(--success);">${r.multiCorrect}</div>
+        <div style="font-size:11px;color:var(--danger);">错 ${r.multiWrong}</div>
+      </div>
+    </div>
+    <div style="margin-bottom:12px;"><div style="font-size:13px;font-weight:700;margin-bottom:6px;">&#x1F4CA; 门派破绽</div>${chapterWrongHtml}</div>
+    <div style="margin-bottom:12px;"><div style="font-size:13px;font-weight:700;margin-bottom:6px;">&#x1F4CA; 境界破绽</div>${diffWrongHtml}</div>
+    <div><div style="font-size:13px;font-weight:700;margin-bottom:6px;">&#x1F4DD; 错题回顾</div>${wrongListHtml}</div>
+  `, `<button class="btn btn-outline" onclick="closeModal()">关闭</button>`);
 }
 
 function reviewExamAnswers() {
