@@ -54460,6 +54460,16 @@ async function requestAIAnalysisForExamWrong(recordIdx, questionIdx) {
   const containerEl = document.getElementById(`examAiAnalysis_${recordIdx}_${questionIdx}`);
   const btnEl = containerEl?.previousElementSibling;
   
+  // 检查缓存
+  if (q.id) {
+    const cached = getAICache(q.id);
+    if (cached) {
+      renderAICached(containerEl, btnEl, cached.text);
+      showToast('已加载缓存解析');
+      return;
+    }
+  }
+  
   if (btnEl) {
     btnEl.disabled = true;
     btnEl.innerHTML = '<span class="spinner" style="display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,0.2);border-top-color:#f59e0b;border-radius:50%;animation:spin 0.8s linear infinite;"></span> 解析中...';
@@ -54557,6 +54567,9 @@ async function requestAIAnalysisForExamWrong(recordIdx, questionIdx) {
     const data = await resp.json();
     const aiText = config.parse(data) || 'AI 未返回解析内容';
     
+    // 写入缓存
+    if (aiText && q.id) setAICache(q.id, aiText);
+    
     if (containerEl) {
       containerEl.innerHTML = `<div class="ai-analysis"><div class="ai-label">&#x1F916; AI 智能解析</div>${formatAIAnalysis(aiText)}</div>`;
     }
@@ -54580,6 +54593,16 @@ async function requestExamAIAnalysis() {
   const r = records[0];
   if (!r) {
     showToast('暂无考试记录');
+    return;
+  }
+
+  // 检查缓存（考情解析用 exam_ + id 作为缓存key）
+  const cacheKey = `exam_${r.id}`;
+  const cached = getAICache(cacheKey);
+  if (cached) {
+    if (containerEl) containerEl.innerHTML = `<div class="ai-analysis"><div class="ai-label">&#x1F916; AI 智能考情诊断（缓存）</div>${formatAIAnalysis(cached.text)}</div>`;
+    if (btnEl) { btnEl.disabled = false; btnEl.innerHTML = '&#x1F916; 重新生成 AI 考情解析'; }
+    showToast('已加载缓存解析');
     return;
   }
   
@@ -54697,8 +54720,11 @@ async function requestExamAIAnalysis() {
     const data = await resp.json();
     const aiText = config.parse(data) || 'AI 未返回解析内容';
     
+    // 写入缓存
+    if (aiText) setAICache(cacheKey, aiText);
+    
     if (containerEl) {
-      containerEl.innerHTML = `<div class="ai-analysis"><div class="ai-label">&#x1F916; AI 智能考情诊断</div><div style="white-space:pre-wrap;line-height:1.8;">${escapeHtml(aiText)}</div></div>`;
+      containerEl.innerHTML = `<div class="ai-analysis"><div class="ai-label">&#x1F916; AI 智能考情诊断</div>${formatAIAnalysis(aiText)}</div>`;
     }
   } catch (err) {
     if (err.name === 'AbortError') {
@@ -54777,6 +54803,14 @@ async function requestAIAnalysis(qIdx) {
 
   const btnEl = document.getElementById(`aiBtn_${qIdx}`);
   const containerEl = document.getElementById(`aiAnalysis_${qIdx}`);
+
+  // 检查缓存
+  const cached = getAICache(q.id);
+  if (cached) {
+    renderAICached(containerEl, btnEl, cached.text);
+    showToast('已加载缓存解析');
+    return;
+  }
 
   if (btnEl) btnEl.disabled = true;
   if (btnEl) btnEl.innerHTML = '<span class="spinner" style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.8s linear infinite;"></span> 解析中...';
@@ -54886,6 +54920,9 @@ async function requestAIAnalysis(qIdx) {
     const data = await resp.json();
     const aiText = config.parse(data) || 'AI 未返回解析内容';
 
+    // 写入缓存
+    if (aiText && q.id) setAICache(q.id, aiText);
+
     if (containerEl) {
       containerEl.innerHTML = `<div class="ai-analysis"><div class="ai-label">&#x1F916; AI 智能解析</div>${formatAIAnalysis(aiText)}</div>`;
     }
@@ -54904,6 +54941,34 @@ function escapeHtml(text) {
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
+}
+
+function getAICache(questionId) {
+  try {
+    const cache = JSON.parse(localStorage.getItem('aiAnalysisCache') || '{}');
+    return cache[questionId] || null;
+  } catch (e) { return null; }
+}
+
+function setAICache(questionId, text) {
+  try {
+    const cache = JSON.parse(localStorage.getItem('aiAnalysisCache') || '{}');
+    cache[questionId] = { text, time: Date.now() };
+    // 限制缓存大小，最多保留500条
+    const keys = Object.keys(cache);
+    if (keys.length > 500) {
+      keys.sort((a, b) => cache[a].time - cache[b].time);
+      keys.slice(0, keys.length - 500).forEach(k => delete cache[k]);
+    }
+    localStorage.setItem('aiAnalysisCache', JSON.stringify(cache));
+  } catch (e) {}
+}
+
+function renderAICached(containerEl, btnEl, aiText) {
+  if (containerEl) {
+    containerEl.innerHTML = `<div class="ai-analysis"><div class="ai-label">&#x1F916; AI 智能解析（缓存）</div>${formatAIAnalysis(aiText)}</div>`;
+  }
+  if (btnEl) { btnEl.disabled = false; btnEl.innerHTML = '&#x1F916; AI解析'; }
 }
 
 function formatAIAnalysis(text) {
@@ -55432,6 +55497,14 @@ async function requestChallengeAIAnalysis(qIdx) {
   const btnEl = document.getElementById(`challengeAiBtn_${qIdx}`);
   const containerEl = document.getElementById(`challengeAiAnalysis_${qIdx}`);
 
+  // 检查缓存
+  const cached = getAICache(q.id);
+  if (cached) {
+    renderAICached(containerEl, btnEl, cached.text);
+    showToast('已加载缓存解析');
+    return;
+  }
+
   if (btnEl) btnEl.disabled = true;
   if (btnEl) btnEl.innerHTML = '<span class="spinner" style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.8s linear infinite;"></span> 解析中...';
 
@@ -55519,6 +55592,9 @@ async function requestChallengeAIAnalysis(qIdx) {
 
     const data = await resp.json();
     const aiText = config.parse(data) || 'AI 未返回解析内容';
+
+    // 写入缓存
+    if (aiText && q.id) setAICache(q.id, aiText);
 
     if (containerEl) {
       containerEl.innerHTML = `<div class="ai-analysis"><div class="ai-label">&#x1F916; AI 智能解析</div>${formatAIAnalysis(aiText)}</div>`;
