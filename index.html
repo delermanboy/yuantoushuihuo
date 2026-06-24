@@ -2002,6 +2002,7 @@ select.input option { background: #1a1a2e; color: #f1f5f9; }
   <button class="nav-item" data-page="challenge" onclick="navigateTo('challenge')">生死试炼</button>
   <button class="nav-item" data-page="knowledge" onclick="navigateTo('knowledge')">知识点</button>
   <button class="nav-item" data-page="favorites" onclick="navigateTo('favorites')">&#x2B50;收藏</button>
+  <button class="nav-item" data-page="search" onclick="navigateTo('search')">&#x1F50D;搜索</button>
   <button class="nav-item" data-page="settings" onclick="navigateTo('settings')">修炼设置</button>
 </nav>
 
@@ -2182,6 +2183,10 @@ select.input option { background: #1a1a2e; color: #f1f5f9; }
 
   <div class="page" id="page-knowledge">
     <div id="knowledge-container"></div>
+  </div>
+
+  <div class="page" id="page-search">
+    <div id="search-container"></div>
   </div>
 
   <div class="page" id="page-settings">
@@ -53702,6 +53707,9 @@ function navigateTo(page) {
   if (page === 'favorites') {
     renderFavorites();
   }
+  if (page === 'search') {
+    renderSearchPage();
+  }
 }
 
 function updateStats() {
@@ -54617,6 +54625,116 @@ function clearAllFavorites() {
     saveFavorites([]);
     showToast('收藏已清空');
     renderFavorites();
+  }
+}
+
+// ==================== Search System ====================
+function renderSearchPage() {
+  const container = document.getElementById('search-container');
+  if (!container) return;
+
+  container.innerHTML = `
+    <div style="padding:20px;max-width:800px;margin:0 auto;">
+      <h2 style="font-size:20px;font-weight:900;margin-bottom:16px;">&#x1F50D; 题目搜索</h2>
+      <div style="display:flex;gap:8px;margin-bottom:16px;">
+        <input type="text" id="searchInput" placeholder="输入关键词搜索题目、选项、章节..." style="flex:1;padding:10px 14px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:14px;outline:none;" onkeydown="if(event.key==='Enter')doSearch()" />
+        <select id="searchChapter" style="padding:10px 14px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:14px;outline:none;min-width:120px;">
+          <option value="">全部章节</option>
+          ${chapters.map(ch => `<option value="${ch}">${ch}</option>`).join('')}
+        </select>
+        <select id="searchType" style="padding:10px 14px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:14px;outline:none;min-width:100px;">
+          <option value="">全部题型</option>
+          <option value="A1型题">A1型题</option>
+          <option value="B型题">B型题</option>
+          <option value="X型题">X型题</option>
+        </select>
+        <button class="btn btn-primary" onclick="doSearch()">搜索</button>
+      </div>
+      <div id="searchResults" style="min-height:200px;"></div>
+    </div>
+  `;
+
+  // Focus input
+  setTimeout(() => document.getElementById('searchInput')?.focus(), 100);
+}
+
+function doSearch() {
+  const keyword = document.getElementById('searchInput')?.value.trim().toLowerCase();
+  const chapter = document.getElementById('searchChapter')?.value;
+  const type = document.getElementById('searchType')?.value;
+  const resultsEl = document.getElementById('searchResults');
+
+  if (!keyword && !chapter && !type) {
+    resultsEl.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:40px;">请输入关键词或选择筛选条件</div>';
+    return;
+  }
+
+  let results = allQuestions.filter(q => {
+    if (chapter && q.chapter !== chapter) return false;
+    if (type && q.type !== type) return false;
+    if (!keyword) return true;
+    const hay = (q.question + ' ' + (q.A || '') + ' ' + (q.B || '') + ' ' + (q.C || '') + ' ' + (q.D || '') + ' ' + (q.E || '') + ' ' + (q.chapter || '') + ' ' + (q.type || '')).toLowerCase();
+    return hay.includes(keyword);
+  });
+
+  if (results.length === 0) {
+    resultsEl.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:40px;">未找到匹配的题目</div>';
+    return;
+  }
+
+  // Limit to first 100 for performance
+  const total = results.length;
+  const display = results.slice(0, 100);
+
+  let html = `<div style="margin-bottom:12px;font-size:13px;color:var(--text-muted);">找到 ${total} 道题目${total > 100 ? '，显示前 100 道' : ''}</div>`;
+
+  display.forEach((q, i) => {
+    const letters = ['A','B','C','D','E'];
+    const optionsHtml = letters.map(l => q[l] ? `<div style="font-size:13px;padding:2px 0 2px 20px;color:var(--text-secondary);">${l}. ${q[l]}</div>` : '').join('');
+    const isFav = isFavorited(q.id);
+
+    html += `
+    <div style="padding:14px;border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:10px;background:rgba(255,255,255,0.02);">
+      <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:6px;">
+        <div style="font-size:12px;color:var(--text-muted);display:flex;gap:8px;flex-wrap:wrap;">
+          <span>${q.chapter}</span><span>${q.type}</span>${q.difficulty ? `<span>${q.difficulty}</span>` : ''}
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="toggleSearchFavorite('${q.id}')" id="searchFav_${q.id}" style="padding:2px 8px;font-size:16px;" title="${isFav ? '取消收藏' : '收藏'}">${isFav ? '&#x2B50;' : '&#x2606;'}</button>
+      </div>
+      <div style="font-size:15px;font-weight:600;margin-bottom:6px;line-height:1.6;">${(currentPage - 1) * 100 + i + 1}. ${highlightSearch(q.question, keyword)}</div>
+      <div style="margin-bottom:6px;">${optionsHtml}</div>
+      <div style="font-size:13px;color:var(--success);font-weight:600;">正确答案：${q.answer}</div>
+    </div>`;
+  });
+
+  resultsEl.innerHTML = html;
+}
+
+function highlightSearch(text, keyword) {
+  if (!keyword || !text) return text;
+  const re = new RegExp('(' + keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+  return text.replace(re, '<mark style="background:rgba(251,191,36,0.3);color:#fbbf24;padding:0 2px;border-radius:2px;">$1</mark>');
+}
+
+function toggleSearchFavorite(questionId) {
+  let favs = getFavorites();
+  const existIdx = favs.findIndex(f => f.id === questionId);
+  if (existIdx >= 0) {
+    favs.splice(existIdx, 1);
+    showToast('已取消收藏');
+  } else {
+    const q = allQuestions.find(aq => aq.id === questionId);
+    if (q) {
+      favs.push({ id: q.id, question: q.question, A: q.A, B: q.B, C: q.C, D: q.D, E: q.E, answer: q.answer, chapter: q.chapter, type: q.type, difficulty: q.difficulty, time: Date.now() });
+      showToast('已收藏 &#x2B50;');
+    }
+  }
+  saveFavorites(favs);
+  const btn = document.getElementById('searchFav_' + questionId);
+  if (btn) {
+    const isFav = isFavorited(questionId);
+    btn.innerHTML = isFav ? '&#x2B50;' : '&#x2606;';
+    btn.title = isFav ? '取消收藏' : '收藏';
   }
 }
 
