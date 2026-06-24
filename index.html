@@ -53687,6 +53687,7 @@ function navigateTo(page) {
   if (page === 'chapter') filterChapters();
   if (page === 'exam') {
     document.getElementById('examSetup').style.display = '';
+    document.getElementById('examHistoryInline').style.display = '';
     document.getElementById('examContent').style.display = 'none';
     document.getElementById('examResult').style.display = 'none';
     if (currentQuiz.timer) clearInterval(currentQuiz.timer);
