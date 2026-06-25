@@ -1779,6 +1779,7 @@ body::after {
 .q-dot.current { background: var(--primary); color: white; border-color: var(--primary); }
 .q-dot.answered { background: var(--success-bg); color: var(--success); border-color: rgba(16,185,129,0.3); }
 .q-dot.wrong-dot { background: var(--danger-bg); color: var(--danger); border-color: rgba(239,68,68,0.3); }
+.q-dot.marked { border: 2px solid #f59e0b; box-shadow: 0 0 0 2px rgba(245,158,11,0.2); }
 
 .section-title {
   font-size: 18px;
@@ -2285,6 +2286,7 @@ let chapters = [];
 let wrongQuestions = JSON.parse(localStorage.getItem('wrongQuestions') || '[]');
 let questionStats = JSON.parse(localStorage.getItem('questionStats') || '{}');
 let settings = JSON.parse(localStorage.getItem('settings') || '{"aiModel":"deepseek","apiKeys":{"deepseek":"","openai":"","claude":"","custom":""},"autoAnalysis":false}');
+let markedQuestions = JSON.parse(localStorage.getItem('markedQuestions') || '[]');
 
 // Migrate old apiKey to new structure
 if (settings.apiKey && !settings.apiKeys?.deepseek) {
@@ -53877,6 +53879,7 @@ function renderQuiz() {
     else if (currentQuiz.results[i] !== undefined) {
       dotCls += currentQuiz.results[i].isCorrect ? ' answered' : ' wrong-dot';
     }
+    if (markedQuestions.includes(currentQuiz.questions[i]?.id)) dotCls += ' marked';
     dotsHtml += `<div class="${dotCls}" onclick="jumpToQuestion(${i})">${i + 1}</div>`;
   }
 
@@ -53919,6 +53922,7 @@ function renderQuiz() {
         <button class="btn btn-outline" onclick="nextQuestion()" ${idx === total - 1 ? 'disabled' : ''}>下一题 &#x2192;</button>
       </div>
       <div class="action-right">
+        <button class="btn btn-outline" onclick="toggleMark(${idx})" id="markBtn_${idx}" title="标记不确定" style="padding:6px 10px;font-size:16px;">${markedQuestions.includes(q.id) ? '&#x26A0;&#xFE0F;' : '&#x26A0;'}</button>
         <button class="btn btn-outline" onclick="toggleFavorite(${idx})" id="favBtn_${idx}" title="收藏此题" style="padding:6px 10px;font-size:16px;">${isFavorited(currentQuiz.questions[idx].id) ? '&#x2B50;' : '&#x2606;'}</button>
         ${!isAnswered ? `<button class="btn btn-primary" onclick="submitAnswer()" ${(!isMulti && !userAnswer) || (isMulti && !userAnswer) ? 'disabled' : ''}>&#x2713; 提交答案</button>` : ''}
         ${isAnswered ? `<button class="btn btn-outline" onclick="requestAIAnalysis(${idx})" id="aiBtn_${idx}">&#x1F916; AI解析</button>` : ''}
@@ -54145,9 +54149,41 @@ function startExam() {
     return;
   }
 
-  // 抽取40单选 + 10多选
-  const singleQs = shuffleArray(singlePool).slice(0, 40);
-  const multiQs = shuffleArray(multiPool).slice(0, 10);
+  // 按难度均匀抽取：将池子按难度分组，从每组按比例抽取
+  function drawBalanced(pool, count) {
+    const byDiff = { '容易': [], '一般': [], '很难': [], '未知': [] };
+    pool.forEach(q => { const d = q.difficulty || '未知'; (byDiff[d] || byDiff['未知']).push(q); });
+    const diffs = ['很容易','容易','一般','难','很难'];
+    const easy = [...(byDiff['很容易'] || []), ...(byDiff['容易'] || [])];
+    const normal = byDiff['一般'] || [];
+    const hard = [...(byDiff['难'] || []), ...(byDiff['很难'] || [])];
+    const unknown = byDiff['未知'] || [];
+
+    // 目标比例：容易 35%, 一般 35%, 很难 30%
+    let targetEasy = Math.round(count * 0.35);
+    let targetNormal = Math.round(count * 0.35);
+    let targetHard = count - targetEasy - targetNormal;
+
+    let result = [];
+    result.push(...shuffleArray(easy).slice(0, targetEasy));
+    result.push(...shuffleArray(normal).slice(0, targetNormal));
+    result.push(...shuffleArray(hard).slice(0, targetHard));
+
+    // 如果某类不够，从其他类补充
+    if (result.length < count) {
+      const remaining = count - result.length;
+      const usedIds = new Set(result.map(q => q.id));
+      const rest = shuffleArray(pool.filter(q => !usedIds.has(q.id)));
+      result.push(...rest.slice(0, remaining));
+    }
+
+    // 如果超了，截断
+    if (result.length > count) result = result.slice(0, count);
+    return shuffleArray(result);
+  }
+
+  const singleQs = drawBalanced(singlePool, 40);
+  const multiQs = drawBalanced(multiPool, 10);
   const qs = [...singleQs, ...multiQs];
 
   currentQuiz = {
@@ -54512,6 +54548,23 @@ function saveFavorites(favs) {
 function isFavorited(questionId) {
   if (!questionId) return false;
   return getFavorites().some(f => f.id === questionId);
+}
+
+function toggleMark(qIdx) {
+  const q = currentQuiz.questions[qIdx];
+  if (!q || !q.id) return;
+  const idx = markedQuestions.indexOf(q.id);
+  if (idx >= 0) {
+    markedQuestions.splice(idx, 1);
+    showToast('已取消标记');
+  } else {
+    markedQuestions.push(q.id);
+    showToast('已标记不确定');
+  }
+  localStorage.setItem('markedQuestions', JSON.stringify(markedQuestions));
+  const btn = document.getElementById('markBtn_' + qIdx);
+  if (btn) btn.innerHTML = markedQuestions.includes(q.id) ? '&#x26A0;&#xFE0F;' : '&#x26A0;';
+  renderQuiz();
 }
 
 function toggleFavorite(qIdx) {
