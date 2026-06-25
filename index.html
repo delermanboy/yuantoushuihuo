@@ -53751,6 +53751,43 @@ function filterChapters() {
   }).join('');
 }
 
+function getChapterProgressKey(chapter, typeFilter) {
+  return 'chapter_' + chapter + (typeFilter && typeFilter !== 'all' ? '_' + typeFilter : '');
+}
+
+function getChapterProgress(chapter, typeFilter) {
+  try {
+    const key = getChapterProgressKey(chapter, typeFilter);
+    const all = JSON.parse(localStorage.getItem('chapterProgress') || '{}');
+    return all[key] || null;
+  } catch (e) { return null; }
+}
+
+function saveChapterProgress() {
+  if (currentQuiz.mode !== 'chapter') return;
+  try {
+    const all = JSON.parse(localStorage.getItem('chapterProgress') || '{}');
+    const key = getChapterProgressKey(currentQuiz.title || '', '');
+    all[key] = {
+      currentIndex: currentQuiz.currentIndex,
+      answers: currentQuiz.answers,
+      results: currentQuiz.results,
+      questionIds: currentQuiz.questions.map(q => q.id),
+      timestamp: Date.now()
+    };
+    localStorage.setItem('chapterProgress', JSON.stringify(all));
+  } catch (e) {}
+}
+
+function clearChapterProgress(chapter, typeFilter) {
+  try {
+    const all = JSON.parse(localStorage.getItem('chapterProgress') || '{}');
+    const key = getChapterProgressKey(chapter, typeFilter);
+    delete all[key];
+    localStorage.setItem('chapterProgress', JSON.stringify(all));
+  } catch (e) {}
+}
+
 function selectChapter(chapter, typeFilter) {
   let qs = allQuestions.filter(q => q.chapter === chapter);
   if (typeFilter && typeFilter !== 'all') qs = qs.filter(q => q.type === typeFilter);
@@ -53758,7 +53795,69 @@ function selectChapter(chapter, typeFilter) {
     showToast('该章节没有符合条件的题目');
     return;
   }
+
+  const progress = getChapterProgress(chapter, typeFilter);
+  if (progress && progress.questionIds && progress.questionIds.length > 0) {
+    // 恢复题目顺序（用保存的ID顺序重建题目数组）
+    const idMap = new Map(qs.map(q => [q.id, q]));
+    const restoredQs = progress.questionIds.map(id => idMap.get(id)).filter(Boolean);
+    // 补充可能新增的题目
+    const restoredIds = new Set(progress.questionIds);
+    const extraQs = qs.filter(q => !restoredIds.has(q.id));
+    const finalQs = [...restoredQs, ...extraQs];
+
+    const answeredCount = Object.keys(progress.results || {}).length;
+    const total = finalQs.length;
+
+    showModal('发现学习进度', `
+      <div style="text-align:center;padding:20px;">
+        <div style="font-size:48px;margin-bottom:12px;">&#x1F4D6;</div>
+        <p style="font-size:16px;margin-bottom:8px;">上次学习到 <strong>第 ${progress.currentIndex + 1}/${total} 题</strong></p>
+        <p style="color:var(--text-muted);font-size:14px;">已作答 ${answeredCount} 题</p>
+      </div>
+    `, `
+      <button class="btn btn-outline" onclick="closeModal();startQuiz('chapter', shuffleArray([...allQuestions.filter(q=>q.chapter==='${chapter}')${typeFilter && typeFilter !== 'all' ? `.filter(q=>q.type==='${typeFilter}')` : ''}]), '${chapter}', true);">&#x1F504; 重新刷题</button>
+      <button class="btn btn-primary" onclick="closeModal();restoreChapterQuiz('${chapter}', '${typeFilter || ''}')">&#x25B6; 继续学习</button>
+    `);
+    return;
+  }
+
   startQuiz('chapter', shuffleArray([...qs]), chapter);
+}
+
+function restoreChapterQuiz(chapter, typeFilter) {
+  let qs = allQuestions.filter(q => q.chapter === chapter);
+  if (typeFilter && typeFilter !== 'all') qs = qs.filter(q => q.type === typeFilter);
+
+  const progress = getChapterProgress(chapter, typeFilter);
+  if (!progress) {
+    startQuiz('chapter', shuffleArray([...qs]), chapter);
+    return;
+  }
+
+  // 恢复题目顺序
+  const idMap = new Map(qs.map(q => [q.id, q]));
+  const restoredQs = progress.questionIds.map(id => idMap.get(id)).filter(Boolean);
+  const restoredIds = new Set(progress.questionIds);
+  const extraQs = qs.filter(q => !restoredIds.has(q.id));
+  const finalQs = [...restoredQs, ...extraQs];
+
+  currentQuiz = {
+    mode: 'chapter',
+    questions: finalQs,
+    currentIndex: progress.currentIndex || 0,
+    answers: progress.answers || {},
+    results: progress.results || {},
+    startTime: Date.now(),
+    timer: null,
+    timeLimit: 0,
+    timeRemaining: 0,
+    submitted: false,
+    title: chapter
+  };
+
+  navigateTo('quiz');
+  renderQuiz();
 }
 
 function startRandomQuiz() {
@@ -53767,7 +53866,7 @@ function startRandomQuiz() {
   startQuiz('random', qs, '乱序练习');
 }
 
-function startQuiz(mode, questions, title) {
+function startQuiz(mode, questions, title, isRestart) {
   currentQuiz = {
     mode,
     questions,
@@ -53778,8 +53877,13 @@ function startQuiz(mode, questions, title) {
     timer: null,
     timeLimit: 0,
     timeRemaining: 0,
-    submitted: false
+    submitted: false,
+    title: title || ''
   };
+
+  if (isRestart && mode === 'chapter') {
+    clearChapterProgress(title, '');
+  }
 
   navigateTo('quiz');
   renderQuiz();
@@ -54002,12 +54106,14 @@ function submitAnswer() {
   localStorage.setItem('wrongQuestions', JSON.stringify(wrongQuestions));
 
   updateStats();
+  saveChapterProgress();
   renderQuiz();
 }
 
 function prevQuestion() {
   if (currentQuiz.currentIndex > 0) {
     currentQuiz.currentIndex--;
+    saveChapterProgress();
     renderQuiz();
   }
 }
@@ -54015,16 +54121,21 @@ function prevQuestion() {
 function nextQuestion() {
   if (currentQuiz.currentIndex < currentQuiz.questions.length - 1) {
     currentQuiz.currentIndex++;
+    saveChapterProgress();
     renderQuiz();
   }
 }
 
 function jumpToQuestion(idx) {
   currentQuiz.currentIndex = idx;
+  saveChapterProgress();
   renderQuiz();
 }
 
 function finishQuiz() {
+  if (currentQuiz.mode === 'chapter') {
+    clearChapterProgress(currentQuiz.title, '');
+  }
   const total = currentQuiz.questions.length;
   const correct = Object.values(currentQuiz.results).filter(r => r.isCorrect).length;
   const accuracy = Math.round(correct / total * 100);
@@ -54041,6 +54152,7 @@ function finishQuiz() {
     </div>
   `, `
     <button class="btn btn-outline" onclick="closeModal();navigateTo('home');">返回首页</button>
+    ${currentQuiz.mode === 'chapter' ? `<button class="btn btn-outline" onclick="closeModal();startQuiz('chapter', shuffleArray([...allQuestions.filter(q=>q.chapter==='${currentQuiz.title}')]), '${currentQuiz.title}', true);">&#x1F504; 重新刷题</button>` : ''}
     <button class="btn btn-primary" onclick="closeModal();reviewWrongInQuiz();">查看错题</button>
   `);
 }
