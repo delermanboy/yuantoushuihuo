@@ -53763,11 +53763,15 @@ function getChapterProgress(chapter, typeFilter) {
   } catch (e) { return null; }
 }
 
+function getQuizProgressKey(mode, title) {
+  return mode + '_' + title;
+}
+
 function saveChapterProgress() {
-  if (currentQuiz.mode !== 'chapter') return;
+  if (currentQuiz.mode !== 'chapter' && currentQuiz.mode !== 'layered') return;
   try {
     const all = JSON.parse(localStorage.getItem('chapterProgress') || '{}');
-    const key = getChapterProgressKey(currentQuiz.title || '', '');
+    const key = getQuizProgressKey(currentQuiz.mode, currentQuiz.title || '');
     all[key] = {
       currentIndex: currentQuiz.currentIndex,
       answers: currentQuiz.answers,
@@ -53783,6 +53787,15 @@ function clearChapterProgress(chapter, typeFilter) {
   try {
     const all = JSON.parse(localStorage.getItem('chapterProgress') || '{}');
     const key = getChapterProgressKey(chapter, typeFilter);
+    delete all[key];
+    localStorage.setItem('chapterProgress', JSON.stringify(all));
+  } catch (e) {}
+}
+
+function clearLayeredProgress(difficulty) {
+  try {
+    const all = JSON.parse(localStorage.getItem('chapterProgress') || '{}');
+    const key = getQuizProgressKey('layered', difficulty + '层');
     delete all[key];
     localStorage.setItem('chapterProgress', JSON.stringify(all));
   } catch (e) {}
@@ -54135,6 +54148,9 @@ function jumpToQuestion(idx) {
 function finishQuiz() {
   if (currentQuiz.mode === 'chapter') {
     clearChapterProgress(currentQuiz.title, '');
+  }
+  if (currentQuiz.mode === 'layered') {
+    clearLayeredProgress(currentQuiz.title.replace('层', ''));
   }
   const total = currentQuiz.questions.length;
   const correct = Object.values(currentQuiz.results).filter(r => r.isCorrect).length;
@@ -55530,7 +55546,70 @@ function startLayeredQuiz(difficulty) {
     showToast('该难度没有题目');
     return;
   }
+
+  // 检查是否有保存的进度
+  const key = getQuizProgressKey('layered', difficulty + '层');
+  const all = JSON.parse(localStorage.getItem('chapterProgress') || '{}');
+  const progress = all[key];
+
+  if (progress && progress.questionIds && progress.questionIds.length > 0) {
+    const idMap = new Map(qs.map(q => [q.id, q]));
+    const restoredQs = progress.questionIds.map(id => idMap.get(id)).filter(Boolean);
+    const restoredIds = new Set(progress.questionIds);
+    const extraQs = qs.filter(q => !restoredIds.has(q.id));
+    const finalQs = [...restoredQs, ...extraQs];
+    const answeredCount = Object.keys(progress.results || {}).length;
+    const total = finalQs.length;
+
+    showModal('发现学习进度', `
+      <div style="text-align:center;padding:20px;">
+        <div style="font-size:48px;margin-bottom:12px;">&#x1F4D6;</div>
+        <p style="font-size:16px;margin-bottom:8px;">上次学习到 <strong>第 ${progress.currentIndex + 1}/${total} 题</strong></p>
+        <p style="color:var(--text-muted);font-size:14px;">已作答 ${answeredCount} 题 · ${difficulty}难度</p>
+      </div>
+    `, `
+      <button class="btn btn-outline" onclick="closeModal();startQuiz('layered', shuffleArray(allQuestions.filter(q=>q.difficulty==='${difficulty}')), '${difficulty}层', true);">&#x1F504; 重新刷题</button>
+      <button class="btn btn-primary" onclick="closeModal();restoreLayeredQuiz('${difficulty}')">&#x25B6; 继续学习</button>
+    `);
+    return;
+  }
+
   startQuiz('layered', qs, `${difficulty}层`);
+}
+
+function restoreLayeredQuiz(difficulty) {
+  const qs = shuffleArray(allQuestions.filter(q => q.difficulty === difficulty));
+  const key = getQuizProgressKey('layered', difficulty + '层');
+  const all = JSON.parse(localStorage.getItem('chapterProgress') || '{}');
+  const progress = all[key];
+
+  if (!progress) {
+    startQuiz('layered', qs, `${difficulty}层`);
+    return;
+  }
+
+  const idMap = new Map(qs.map(q => [q.id, q]));
+  const restoredQs = progress.questionIds.map(id => idMap.get(id)).filter(Boolean);
+  const restoredIds = new Set(progress.questionIds);
+  const extraQs = qs.filter(q => !restoredIds.has(q.id));
+  const finalQs = [...restoredQs, ...extraQs];
+
+  currentQuiz = {
+    mode: 'layered',
+    questions: finalQs,
+    currentIndex: progress.currentIndex || 0,
+    answers: progress.answers || {},
+    results: progress.results || {},
+    startTime: Date.now(),
+    timer: null,
+    timeLimit: 0,
+    timeRemaining: 0,
+    submitted: false,
+    title: difficulty + '层'
+  };
+
+  navigateTo('quiz');
+  renderQuiz();
 }
 
 async function requestAIAnalysis(qIdx) {
